@@ -2,6 +2,7 @@
 import Hero from "@/components/Hero";
 import MarqueeSection from "@/components/MarqueeSection";
 import FeaturesSection from "@/components/FeaturesSection";
+import HowItWorksSection from "@/components/HowItWorksSection";
 
 export default function Home() {
   return (
@@ -11,6 +12,7 @@ export default function Home() {
         <MarqueeSection />
       </div>
       <FeaturesSection />
+      <HowItWorksSection />
     </main>
   );
 }
