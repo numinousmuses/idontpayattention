@@ -49,7 +49,7 @@ export default function ProPlanSection() {
   };
 
   return (
-    <section className="w-all py-24 bg-white relative border-t-2 border-b-2 border-black">
+    <section className="w-all py-24 bg-blue-50 relative border-t-2 border-b-2 border-black">
       {/* Grid background */}
       <div 
         className="absolute inset-0 opacity-20"
@@ -115,7 +115,7 @@ export default function ProPlanSection() {
       <div className="px-4 flex justify-center relative z-10">
         <Button 
           onClick={handleProPlanClick}
-          className="bg-blue-500 text-black border-2 border-black text-lg px-8 py-4 flex items-center gap-2 hover:bg-blue-600 transition-colors"
+          className="bg-blue-500 text-black border-2 border-black text-lg px-8 py-4 flex items-center gap-2 transition-colors"
         >
           Check out our pro plan
         </Button>

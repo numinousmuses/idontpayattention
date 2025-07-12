@@ -34,14 +34,14 @@ export default function ForeverFreeSection() {
   const extendedFeatures = [...features, ...features];
 
   return (
-    <section className="w-full py-24 bg-blue-50 relative border-t-2 border-b-2 border-black">
+    <section className="w-full py-24 bg-blue-500 relative border-t-2 border-b-2 border-black">
       {/* Grid background */}
       <div 
         className="absolute inset-0 opacity-20"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(156, 163, 175, 0.9) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(156, 163, 175, 0.9) 1px, transparent 1px)
+            linear-gradient(white 1px, transparent 1px),
+            linear-gradient(90deg, white 1px, transparent 1px)
           `,
           backgroundSize: '40px 40px'
         }}
@@ -58,7 +58,7 @@ export default function ForeverFreeSection() {
           <div className="animate-marquee whitespace-nowrap py-12 flex items-center">
             {extendedFeatures.map((feature, index) => {
               const Icon = feature.icon;
-              const bgColor = index % 2 === 0 ? "bg-blue-400" : "bg-blue-300";
+              const bgColor = index % 2 === 0 ? "bg-blue-100" : "bg-white";
               return (
                 <Card key={index} className={`w-96 h-64 p-6 ${bgColor} border-2 border-black shadow-lg flex-shrink-0 flex flex-col justify-center mx-4`}>
                   <div className="mb-2">
@@ -78,7 +78,7 @@ export default function ForeverFreeSection() {
           <div className="absolute top-0 animate-marquee2 whitespace-nowrap py-12 flex items-center">
             {extendedFeatures.map((feature, index) => {
               const Icon = feature.icon;
-              const bgColor = index % 2 === 0 ? "bg-blue-400" : "bg-blue-300";
+              const bgColor = index % 2 === 0 ? "bg-blue-300" : "bg-blue-200";
               return (
                 <Card key={`duplicate-${index}`} className={`w-96 h-64 p-6 ${bgColor} border-2 border-black shadow-lg flex-shrink-0 flex flex-col justify-center mx-4`}>
                   <div className="mb-2">

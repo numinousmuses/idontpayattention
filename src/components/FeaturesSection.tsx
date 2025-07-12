@@ -24,41 +24,54 @@ export default function FeaturesSection() {
     }
   ];
 
+  const featureStyles = [
+    { // index 0: Light
+      bg: 'bg-blue-50',
+      title: 'text-black',
+      description: 'text-gray-700'
+    },
+    { // index 1: Dark
+      bg: 'bg-blue-500',
+      title: 'text-black',
+      description: 'text-black'
+    },
+    { // index 2: Light on mobile/desktop, Dark on tablet
+      bg: 'bg-blue-50 md:bg-blue-500 xl:bg-blue-50',
+      title: 'text-black',
+      description: 'text-gray-700 md:text-black xl:text-gray-700'
+    },
+    { // index 3: Dark on mobile/desktop, Light on tablet
+      bg: 'bg-blue-500 md:bg-blue-50 xl:bg-blue-500',
+      title: 'text-black',
+      description: 'text-black md:text-gray-700 xl:text-black'
+    },
+  ];
+
+
   return (
     <section className="w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         {features.map((feature, index) => {
           const Icon = feature.icon;
-          
-          // Build background class based on index for 4-column layout
-          let bgClass = "";
-          if (index === 0) bgClass = "bg-blue-50 xl:bg-blue-50";
-          if (index === 1) bgClass = "bg-blue-500 xl:bg-blue-500";
-          if (index === 2) bgClass = "bg-blue-50 xl:bg-blue-50";
-          if (index === 3) bgClass = "bg-blue-500 xl:bg-blue-500";
+          const styles = featureStyles[index];
           
           return (
             <div
               key={index}
-              className={`${bgClass} border-2 border-black p-8 md:p-12 flex flex-col justify-center min-h-[300px]`}
+              className={`${styles.bg} border-2 border-black p-8 md:p-12 flex flex-col justify-center min-h-[300px]`}
             >
               <div className="mb-6">
                 <Icon 
                   size={48} 
-                  className="text-black" 
+                  className={styles.title}
                 />
               </div>
               
-              <h3 className="text-2xl md:text-3xl font-bold mb-4 text-black">
+              <h3 className={`text-2xl md:text-3xl font-bold mb-4 ${styles.title}`}>
                 {feature.title}
               </h3>
               
-              <p className={`text-base md:text-lg leading-relaxed ${
-                index === 0 ? 'text-gray-700 xl:text-gray-700' :
-                index === 1 ? 'text-black xl:text-black' :
-                index === 2 ? 'text-black xl:text-gray-700' :
-                'text-gray-700 xl:text-black'
-              }`}>
+              <p className={`text-base md:text-lg leading-relaxed ${styles.description}`}>
                 {feature.description}
               </p>
             </div>
