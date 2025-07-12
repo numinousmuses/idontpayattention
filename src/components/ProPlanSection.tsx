@@ -1,40 +1,55 @@
-import { Card } from "@/components/ui/card";
-import { FileText, HardDrive, Share2, Download, Sparkles } from "lucide-react";
+"use client";
 
-export default function ForeverFreeSection() {
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Cloud, Link, EyeOff, FileX, Database, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+export default function ProPlanSection() {
+  const router = useRouter();
+
   const features = [
     {
-      icon: FileText,
-      title: "Unlimited notes",
-      subtitle: "Create as many notes as you need without any limits"
+      icon: Cloud,
+      title: "Notes stored in cloud",
+      subtitle: "Access your notes from anywhere, anytime. No more lost transcriptions when you switch devices or clear your browser."
     },
     {
-      icon: HardDrive,
-      title: "Browser storage",
-      subtitle: "Notes are stored in your browser/on-device for privacy"
+      icon: Link,
+      title: "Unlimited permanent shared notes",
+      subtitle: "Share notes that never expire. Send links that work forever, not just for 48 hours like the free version."
     },
     {
-      icon: Share2,
-      title: "Share notes",
-      subtitle: "Shared notes are available for 48 hours"
+      icon: EyeOff,
+      title: "No ads",
+      subtitle: "Clean, distraction-free interface. Just you and your notes, without promotional clutter getting in the way."
     },
     {
-      icon: Download,
-      title: "Export notes",
-      subtitle: "Copy as text, export as PDFs, or copy as markdown for Notion, GitHub, Obsidian, etc"
+      icon: FileX,
+      title: "No watermark on exported notes",
+      subtitle: "Professional-looking outputs without our branding. Your notes look like they came from you, not us."
     },
     {
-      icon: Sparkles,
-      title: "Edit notes with AI",
-      subtitle: "Polish your auto-generated notes with smart AI editing. Fix formatting, add clarity, or restructure content without starting from scratch."
+      icon: Database,
+      title: "Knowledge Vault",
+      subtitle: "Your notes become searchable long-term memory. Ask questions across all your transcriptions and get instant, intelligent answers."
+    },
+    {
+      icon: Users,
+      title: "Collaborative editing",
+      subtitle: "Share editing access with teammates. Multiple people can refine and improve notes together in real-time."
     }
   ];
 
   // Duplicate features for seamless loop
   const extendedFeatures = [...features, ...features];
 
+  const handleProPlanClick = () => {
+    router.push('/pro');
+  };
+
   return (
-    <section className="w-full py-24 bg-blue-50 relative border-t-2 border-b-2 border-black">
+    <section className="w-all py-24 bg-white relative border-t-2 border-b-2 border-black">
       {/* Grid background */}
       <div 
         className="absolute inset-0 opacity-20"
@@ -49,7 +64,7 @@ export default function ForeverFreeSection() {
       
       <div className="px-4 mb-12 relative z-10">
         <h2 className="text-4xl md:text-5xl font-bold text-center text-black">
-          With forever free, you get:
+          If these features sound good to you:
         </h2>
       </div>
       
@@ -95,6 +110,16 @@ export default function ForeverFreeSection() {
             })}
           </div>
         </div>
+
+      {/* Centered pro plan button */}
+      <div className="px-4 flex justify-center relative z-10">
+        <Button 
+          onClick={handleProPlanClick}
+          className="bg-blue-500 text-black border-2 border-black text-lg px-8 py-4 flex items-center gap-2 hover:bg-blue-600 transition-colors"
+        >
+          Check out our pro plan
+        </Button>
+      </div>
     </section>
   );
-}
+} 

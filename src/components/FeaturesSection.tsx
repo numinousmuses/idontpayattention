@@ -25,7 +25,7 @@ export default function FeaturesSection() {
   ];
 
   return (
-    <section className="w-full border-b-2 border-black">
+    <section className="w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         {features.map((feature, index) => {
           const Icon = feature.icon;
@@ -34,8 +34,8 @@ export default function FeaturesSection() {
           let bgClass = "";
           if (index === 0) bgClass = "bg-blue-50 xl:bg-blue-50";
           if (index === 1) bgClass = "bg-blue-500 xl:bg-blue-500";
-          if (index === 2) bgClass = "bg-blue-500 xl:bg-blue-50";
-          if (index === 3) bgClass = "bg-blue-50 xl:bg-blue-500";
+          if (index === 2) bgClass = "bg-blue-50 xl:bg-blue-50";
+          if (index === 3) bgClass = "bg-blue-500 xl:bg-blue-500";
           
           return (
             <div

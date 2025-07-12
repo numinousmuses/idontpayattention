@@ -73,7 +73,7 @@ export default function Hero() {
 
         <div className="absolute bottom-10 w-full flex flex-col items-center justify-center gap-2">
           <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-            <p className="text-lg xl:text-xl text-black">It&apos;s ok, neither do we</p>
+            <p className="text-lg xl:text-xl text-black">It&apos;s ok, neither do we:</p>
             <Button className="bg-blue-500 text-black border-2 border-black text-base px-6 py-2 xl:text-lg xl:px-8 xl:py-3 flex items-center gap-2">
               Launch App
               <CircleArrowRight className="h-5 w-5 xl:h-6 xl:w-6" />

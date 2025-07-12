@@ -4,6 +4,7 @@ import MarqueeSection from "@/components/MarqueeSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import ForeverFreeSection from "@/components/ForeverFreeSection";
+import ProPlanSection from "@/components/ProPlanSection";
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
       <FeaturesSection />
       <HowItWorksSection />
       <ForeverFreeSection />
+      <ProPlanSection />
     </main>
   );
 }

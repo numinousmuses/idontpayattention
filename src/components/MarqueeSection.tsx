@@ -9,7 +9,7 @@ export default function MarqueeSection() {
   const starComponents = [Star8, Star12, Star14, Star22, Star26, Star29];
 
   const texts = [
-    "Full transprency",
+    "Full transparency",
     "Open source", 
     "No account needed",
     "Forever free*",
@@ -38,7 +38,7 @@ export default function MarqueeSection() {
 
   return (
     <section className="w-full">
-      <div className="relative flex w-full overflow-x-hidden border-b-2 border-t-4 border-black bg-white">
+      <div className="relative flex w-full overflow-x-hidden border-t-4 border-b-2 border-black bg-white">
         <div className="animate-marquee whitespace-nowrap py-4 flex items-center">
           {content}
         </div>
