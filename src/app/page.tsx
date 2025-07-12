@@ -4,7 +4,7 @@ import MarqueeSection from "@/components/MarqueeSection";
 
 export default function Home() {
   return (
-    <main>
+    <main className="flex flex-col h-screen">
       <Hero />
       <MarqueeSection />
     </main>

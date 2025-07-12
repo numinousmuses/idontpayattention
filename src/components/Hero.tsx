@@ -30,7 +30,7 @@ export default function Hero() {
   }, [emblaApi, scrollNext]);
 
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden p-4">
+    <section className="relative flex-grow w-full flex items-center justify-center overflow-hidden p-4">
       {/* Grid background */}
       <div 
         className="absolute inset-0 opacity-20"

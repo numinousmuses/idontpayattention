@@ -12,7 +12,7 @@ export default function MarqueeSection() {
     "Full transprency",
     "Open source", 
     "No account needed",
-    "Free*",
+    "Forever free*",
     "Private"
   ];
 
