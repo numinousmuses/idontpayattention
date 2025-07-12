@@ -17,7 +17,7 @@ export default function HowItWorksSection() {
   ];
 
   return (
-    <section className="w-full py-16 bg-white">
+    <section className="w-full py-16 bg-white border-b-2 border-black">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center text-black mb-12">
           How it works - 3 steps, max

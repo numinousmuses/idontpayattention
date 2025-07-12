@@ -25,7 +25,7 @@ export default function FeaturesSection() {
   ];
 
   return (
-    <section className="w-full">
+    <section className="w-full border-b-2 border-black">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         {features.map((feature, index) => {
           const Icon = feature.icon;
