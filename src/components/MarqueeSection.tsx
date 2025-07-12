@@ -38,7 +38,7 @@ export default function MarqueeSection() {
 
   return (
     <section className="w-full">
-      <div className="relative flex w-full overflow-x-hidden border-b-2 border-t-2 border-black bg-white">
+      <div className="relative flex w-full overflow-x-hidden border-b-2 border-t-4 border-black bg-white">
         <div className="animate-marquee whitespace-nowrap py-4 flex items-center">
           {content}
         </div>
