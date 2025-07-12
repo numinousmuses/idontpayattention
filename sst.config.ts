@@ -14,8 +14,9 @@ export default $config({
     new sst.aws.Nextjs("IDontPayAttention", {
       ...$app.stage === "production" && {
         domain: {
-          name: "idontpayattention.com",
-          redirects: ["www." + "idontpayattention.com"],
+          name: "idontfuckingpayattention.com",
+          redirects: ["www." + "idontfuckingpayattention.com"],
+          aliases: ["idontpayattention.com"],
         },
       },
     });
