@@ -32,10 +32,10 @@ export default function FeaturesSection() {
           
           // Build background class based on index for 4-column layout
           let bgClass = "";
-          if (index === 0) bgClass = "bg-gray-100 xl:bg-gray-100";
+          if (index === 0) bgClass = "bg-blue-50 xl:bg-blue-50";
           if (index === 1) bgClass = "bg-blue-500 xl:bg-blue-500";
-          if (index === 2) bgClass = "bg-blue-500 xl:bg-gray-100";
-          if (index === 3) bgClass = "bg-gray-100 xl:bg-blue-500";
+          if (index === 2) bgClass = "bg-blue-500 xl:bg-blue-50";
+          if (index === 3) bgClass = "bg-blue-50 xl:bg-blue-500";
           
           return (
             <div
