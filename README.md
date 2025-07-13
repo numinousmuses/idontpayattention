@@ -71,6 +71,11 @@ The application is configured through `sst.config.ts` for:
 
 For more information about SST configuration and deployment options, reference the [SST documentation](https://sst.dev/docs).
 
+## Todo
+
+- [ ] Add sharing feature
+- [ ] Export functionality
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
