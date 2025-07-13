@@ -3,8 +3,18 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { CircleArrowRight, Github } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function EnjoySection() {
+  const [isAlias, setIsAlias] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsAlias(window.location.hostname.includes("idontpayattention"));
+    }
+  }, []);
+
+  const hashtag = isAlias ? "#idontpayattention" : "#idontfuckingpayattention";
   return (
     <section className="relative flex-grow w-full flex flex-col items-center justify-center overflow-hidden p-4 h-screen">
       {/* Grid background */}
@@ -26,7 +36,7 @@ export default function EnjoySection() {
                 Enjoy not paying attention!
             </h1>
             <p className="text-lg xl:text-xl text-gray-600">
-                tweet your notes with #idontfuckingpayattention
+                tweet your notes with {hashtag}
             </p>
         </div>
 

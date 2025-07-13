@@ -20,7 +20,7 @@ export default function FeaturesSection() {
     {
       icon: Code,
       title: "Open Source",
-      description: "Built in the open with an MIT license. Fork it, modify it, or contribute back to the community. No black boxes here."
+      description: "Built in the open with an Apache 2.0 license. Fork it, modify it, or contribute back to the community. No black boxes here."
     }
   ];
 

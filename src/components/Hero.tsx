@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import useEmblaCarousel from 'embla-carousel-react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,11 +29,19 @@ export default function Hero() {
     return () => clearInterval(interval);
   }, [emblaApi, scrollNext]);
 
+  const [isAlias, setIsAlias] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsAlias(window.location.hostname.includes("idontpayattention"));
+    }
+  }, []);
+
   return (
     <section className="relative flex-grow w-full flex items-center justify-center overflow-hidden p-4">
       {/* Grid background */}
       <div 
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-20 pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(rgba(156, 163, 175, 0.9) 1px, transparent 1px),
@@ -47,7 +55,7 @@ export default function Hero() {
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
         <div>
           <h1 className="text-4xl md:text-6xl xl:text-8xl font-bold text-black tracking-tight">
-            I don&apos;t f!cking pay attention
+            {isAlias ? "I don’t pay attention" : "I don’t f!cking pay attention"}
           </h1>
           <div className="mt-4 xl:mt-8 flex flex-col justify-center items-center gap-2 xl:gap-4">
             <span className="text-4xl md:text-6xl xl:text-8xl font-bold text-black tracking-tight">
@@ -71,7 +79,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="absolute bottom-10 w-full flex flex-col items-center justify-center gap-2">
+        <div className="absolute bottom-10 w-full flex flex-col items-center justify-center gap-2 z-10">
           <div className="flex flex-col md:flex-row items-center justify-center gap-4">
             <p className="text-lg xl:text-xl text-black">It&apos;s ok, neither do we:</p>
             <Button className="bg-blue-500 text-black border-2 border-black text-base px-6 py-2 xl:text-lg xl:px-8 xl:py-3 flex items-center gap-2">
