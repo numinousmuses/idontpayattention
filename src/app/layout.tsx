@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
+import 'regenerator-runtime/runtime';
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
