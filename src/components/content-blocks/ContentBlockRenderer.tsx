@@ -14,7 +14,7 @@ export default function ContentBlockRenderer({ block, noteColor }: ContentBlockR
   // Render a single row of content blocks
   const renderRow = () => {
     return (
-      <div className="flex flex-wrap w-full">
+      <div className="flex flex-wrap w-full items-stretch">
         {block.content.map((item, index) => {
           // Determine block type and render accordingly
           if ('content' in item && typeof item.content === 'string' && 'width' in item) {
@@ -26,7 +26,7 @@ export default function ContentBlockRenderer({ block, noteColor }: ContentBlockR
                 noteColor={noteColor}
               />
             );
-          } else if ('config' in item && 'heading' in item) {
+          } else if ('chartType' in item && 'chartData' in item && 'heading' in item) {
             // This is a GraphBlock
             return (
               <GraphBlock

@@ -1,8 +1,18 @@
 "use client";
 
-import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer } from 'recharts';
+import { 
+  Area, AreaChart, 
+  Bar, BarChart, 
+  Line, LineChart, 
+  Pie, PieChart, Cell,
+  CartesianGrid, 
+  XAxis, 
+  YAxis,
+  ResponsiveContainer, 
+  Legend,
+  Tooltip
+} from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { GraphBlock as GraphBlockType } from '@/lib/interfaces';
 import { getBackgroundColorClass } from '@/lib/utils';
 
@@ -39,14 +49,11 @@ export default function GraphBlock({ block, noteColor }: GraphBlockProps) {
     }
   };
 
-  // Use chart data from the block - should always be provided by LLM
-  const chartData = (block as GraphBlockType & { chartData?: Array<Record<string, string | number>> }).chartData;
-
   // If no chart data provided, this is an error - don't render
-  if (!chartData || chartData.length === 0) {
+  if (!block.chartData || block.chartData.length === 0) {
     return (
-      <div className={`${getWidthClass()} p-2`}>
-        <Card className={`${getBackgroundColor()} border-2 border-black`}>
+      <div className={`${getWidthClass()} p-2 flex`}>
+        <Card className={`${getBackgroundColor()} border-2 border-black flex-1`}>
           <CardContent className="p-4">
             <p className="text-red-600 text-center">Error: No chart data provided</p>
           </CardContent>
@@ -55,9 +62,121 @@ export default function GraphBlock({ block, noteColor }: GraphBlockProps) {
     );
   }
 
+  // Default chart colors
+  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
+
+  // Helper to get string config value
+  const getConfigString = (key: string, defaultValue: string): string => {
+    const value = block.chartConfig?.[key];
+    return typeof value === 'string' ? value : defaultValue;
+  };
+
+  // Render chart based on type
+  const renderChart = () => {
+    const firstDataPoint = block.chartData[0] || {};
+    
+    switch (block.chartType) {
+      case 'area':
+        const areaXKey = getConfigString('xAxisKey', 'name');
+        const areaDataKeys = Object.keys(firstDataPoint).filter(key => key !== areaXKey);
+        
+        return (
+          <AreaChart data={block.chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey={areaXKey} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {areaDataKeys.map((key, index) => (
+              <Area
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={colors[index % colors.length]}
+                fill={colors[index % colors.length]}
+                fillOpacity={0.6}
+              />
+            ))}
+          </AreaChart>
+        );
+      
+      case 'bar':
+        const barXKey = getConfigString('xAxisKey', 'name');
+        const barDataKeys = Object.keys(firstDataPoint).filter(key => key !== barXKey);
+        
+        return (
+          <BarChart data={block.chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey={barXKey} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {barDataKeys.map((key, index) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                fill={colors[index % colors.length]}
+              />
+            ))}
+          </BarChart>
+        );
+      
+      case 'line':
+        const lineXKey = getConfigString('xAxisKey', 'name');
+        const lineDataKeys = Object.keys(firstDataPoint).filter(key => key !== lineXKey);
+        
+        return (
+          <LineChart data={block.chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey={lineXKey} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {lineDataKeys.map((key, index) => (
+              <Line
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={colors[index % colors.length]}
+                strokeWidth={2}
+              />
+            ))}
+          </LineChart>
+        );
+      
+      case 'pie':
+        const pieDataKey = getConfigString('dataKey', 'value');
+        const pieNameKey = getConfigString('nameKey', 'name');
+        
+        return (
+          <PieChart>
+            <Tooltip />
+            <Legend />
+            <Pie
+              data={block.chartData}
+              dataKey={pieDataKey}
+              nameKey={pieNameKey}
+              cx="50%"
+              cy="50%"
+              outerRadius={80}
+              fill="#8884d8"
+              label
+            >
+              {block.chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+              ))}
+            </Pie>
+          </PieChart>
+        );
+      
+      default:
+        return <div className="text-red-600">Unsupported chart type: {block.chartType}</div>;
+    }
+  };
+
   return (
-    <div className={`${getWidthClass()} p-2`}>
-      <Card className={`${getBackgroundColor()} border-2 border-black`}>
+    <div className={`${getWidthClass()} p-2 flex`}>
+      <Card className={`${getBackgroundColor()} border-2 border-black flex-1`}>
         <CardHeader>
           <CardTitle className="text-black">{block.heading}</CardTitle>
           {block.subheading && (
@@ -67,38 +186,11 @@ export default function GraphBlock({ block, noteColor }: GraphBlockProps) {
           )}
         </CardHeader>
         <CardContent>
-          <ChartContainer config={block.config}>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart
-                data={chartData}
-                margin={{
-                  left: 12,
-                  right: 12,
-                }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="name"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="dot" />}
-                />
-                <Area
-                  dataKey="value"
-                  type="natural"
-                  fill={`var(--color-${noteColor})`}
-                  stroke={`var(--color-${noteColor})`}
-                  activeDot={{
-                    fill: "var(--chart-active-dot)",
-                  }}
-                />
-              </AreaChart>
+          <div className="w-full h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              {renderChart()}
             </ResponsiveContainer>
-          </ChartContainer>
+          </div>
           {block.description && (
             <p className="text-sm text-black mt-2">{block.description}</p>
           )}

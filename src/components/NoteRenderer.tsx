@@ -25,7 +25,16 @@ export default function NoteRenderer({ note }: NoteRendererProps) {
   };
 
   return (
-    <div className={`min-h-screen ${getBackgroundColor()} p-4`}>
+    <div 
+      className={`min-h-screen ${getBackgroundColor()} p-4`}
+      style={{
+        backgroundImage: `
+          linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px)
+        `,
+        backgroundSize: '40px 40px'
+      }}
+    >
       <div className="max-w-6xl mx-auto">
         {/* Note Header */}
         <div className="mb-8 text-center">

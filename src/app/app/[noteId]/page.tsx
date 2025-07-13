@@ -6,7 +6,9 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Mic, Square, ArrowLeft } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Mic, Square, ArrowLeft, RotateCcw, Settings, Edit2, Check, X, ChevronUp, ChevronDown, Menu } from 'lucide-react';
 import { Note, ContentBlock } from '@/lib/interfaces';
 import { getNote, saveNote, initializeDatabase, getConfig } from '@/lib/database';
 import { processTranscriptBatch } from '@/lib/llm-processor';
@@ -26,6 +28,11 @@ export default function NotePage() {
   const [processedWords, setProcessedWords] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>('');
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [tempTitle, setTempTitle] = useState('');
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   const wordCountRef = useRef(0);
   const lastProcessedTranscriptRef = useRef('');
@@ -163,6 +170,8 @@ export default function NotePage() {
 
   // Initialize database and load/create note
   useEffect(() => {
+    setIsMounted(true);
+    
     const initializeApp = async () => {
       try {
         await initializeDatabase();
@@ -277,6 +286,44 @@ export default function NotePage() {
     });
   };
 
+  const handleEditTitle = () => {
+    setTempTitle(note?.title ?? '');
+    setIsEditingTitle(true);
+  };
+
+  const handleSaveTitle = () => {
+    if (note && tempTitle.trim()) {
+      const updatedNote = {
+        ...note,
+        title: tempTitle.trim(),
+        updatedAt: new Date(),
+      };
+      
+      setNote(updatedNote);
+      saveNote(updatedNote);
+      setIsEditingTitle(false);
+      
+      toast.success('Title updated');
+    }
+  };
+
+  const handleCancelTitleEdit = () => {
+    setIsEditingTitle(false);
+    setTempTitle('');
+  };
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!browserSupportsSpeechRecognition) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -307,100 +354,427 @@ export default function NotePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b-2 border-black p-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="neutral"
-              size="icon"
-              onClick={() => router.push('/app')}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-2xl font-bold">{note.title}</h1>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            {/* Status indicators */}
-            <div className="flex items-center gap-2 text-sm">
-              <div className="flex items-center gap-1">
-                <div className={`w-2 h-2 rounded-full ${listening ? 'bg-red-500' : 'bg-gray-300'}`}></div>
-                <span>Microphone: {listening ? 'Recording' : 'Off'}</span>
-              </div>
-              {isProcessing && (
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
-                  <span>Processing...</span>
+    <TooltipProvider>
+      <div className="min-h-screen bg-gray-50">
+        {/* Consolidated Header */}
+        {!isHeaderCollapsed && (
+          <div className="bg-white border-b-2 border-black p-4 transition-all duration-300">
+            <div className="max-w-6xl mx-auto">
+              {/* Mobile Header */}
+              <div className="md:hidden">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="neutral"
+                          size="icon"
+                          onClick={() => router.push('/app')}
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Back to notes</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    <div className="flex items-center gap-2">
+                      {isEditingTitle ? (
+                        <div className="flex items-center gap-2">
+                                                  <Input
+                          value={tempTitle ?? ''}
+                          onChange={(e) => setTempTitle(e.target.value ?? '')}
+                          className="text-lg font-bold"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveTitle();
+                            if (e.key === 'Escape') handleCancelTitleEdit();
+                          }}
+                          autoFocus
+                        />
+                          <Button
+                            size="icon"
+                            variant="neutral"
+                            onClick={handleSaveTitle}
+                            className="h-8 w-8"
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="neutral"
+                            onClick={handleCancelTitleEdit}
+                            className="h-8 w-8"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <h1 className="text-lg font-bold truncate max-w-[200px]">{note.title}</h1>
+                          <Button
+                            size="icon"
+                            variant="neutral"
+                            onClick={handleEditTitle}
+                            className="h-8 w-8"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <div className={`w-2 h-2 rounded-full ${listening ? 'bg-red-500' : 'bg-gray-300'}`}></div>
+                      {isProcessing && (
+                        <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                      )}
+                    </div>
+                    
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="neutral"
+                          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        >
+                          <Menu className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Menu</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="neutral"
+                          onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Collapse header</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                 </div>
+                
+                {/* Mobile Menu */}
+                {isMobileMenuOpen && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex flex-wrap gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            onClick={handleStartListening}
+                            disabled={listening}
+                            className="bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300"
+                          >
+                            <Mic className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Start recording</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            onClick={handleStopListening}
+                            disabled={!listening}
+                            className="bg-red-500 hover:bg-red-600 text-white disabled:bg-gray-300"
+                          >
+                            <Square className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Stop recording</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            onClick={handleReset}
+                            variant="neutral"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Reset transcript</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      
+                      <SettingsModal>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="neutral"
+                            >
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Settings</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </SettingsModal>
+                    </div>
+                    
+                    <div className="mt-3 text-sm text-gray-600">
+                      <div className="flex items-center gap-4">
+                        <span>Mic: {listening ? 'On' : 'Off'}</span>
+                        {isProcessing && <span>Processing...</span>}
+                        <span>Words: {processedWords}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Desktop Header */}
+              <div className="hidden md:flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="neutral"
+                        size="icon"
+                        onClick={() => router.push('/app')}
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Back to notes</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  <div className="flex items-center gap-2">
+                    {isEditingTitle ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={tempTitle ?? ''}
+                          onChange={(e) => setTempTitle(e.target.value ?? '')}
+                          className="text-xl font-bold"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveTitle();
+                            if (e.key === 'Escape') handleCancelTitleEdit();
+                          }}
+                          autoFocus
+                        />
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="neutral"
+                              onClick={handleSaveTitle}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Save title</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="neutral"
+                              onClick={handleCancelTitleEdit}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Cancel editing</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <h1 className="text-2xl font-bold">{note.title}</h1>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="neutral"
+                              onClick={handleEditTitle}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Edit title</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {/* Recording controls */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        onClick={handleStartListening}
+                        disabled={listening}
+                        className="bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300"
+                      >
+                        <Mic className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Start recording</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        onClick={handleStopListening}
+                        disabled={!listening}
+                        className="bg-red-500 hover:bg-red-600 text-white disabled:bg-gray-300"
+                      >
+                        <Square className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Stop recording</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        onClick={handleReset}
+                        variant="neutral"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Reset transcript</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  {/* Status indicators */}
+                  <div className="flex items-center gap-2 text-sm mx-4">
+                    <div className="flex items-center gap-1">
+                      <div className={`w-2 h-2 rounded-full ${listening ? 'bg-red-500' : 'bg-gray-300'}`}></div>
+                      <span>Mic: {listening ? 'On' : 'Off'}</span>
+                    </div>
+                    {isProcessing && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                        <span>Processing...</span>
+                      </div>
+                    )}
+                    <span className="text-gray-500">Words: {processedWords}</span>
+                  </div>
+                  
+                  <SettingsModal>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="neutral"
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Settings</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </SettingsModal>
+                  
+                  {/* Collapse Toggle */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="neutral"
+                        onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Collapse header</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Floating Expand Button */}
+        {isHeaderCollapsed && (
+          <div className="fixed top-4 right-4 z-50">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="neutral"
+                  onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
+                  className="shadow-lg"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Expand header</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
+
+        {/* Current transcript and processing status */}
+        {(transcript || processingStatus) && (
+          <div className="bg-white border-b-2 border-black p-4">
+            <div className="max-w-6xl mx-auto">
+              {transcript && (
+                <Card className="mb-4">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">Current Transcript:</h3>
+                    <p className="text-sm text-gray-700">{transcript}</p>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {processingStatus && (
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm font-medium text-blue-600">{processingStatus}</p>
+                  </CardContent>
+                </Card>
               )}
             </div>
-            
-            <SettingsModal />
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Control Panel */}
-      <div className="bg-white border-b-2 border-black p-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <Button
-                onClick={handleStartListening}
-                disabled={listening}
-                className="bg-green-500 hover:bg-green-600 text-white"
-              >
-                <Mic className="h-4 w-4 mr-2" />
-                Start Recording
-              </Button>
-              
-              <Button
-                onClick={handleStopListening}
-                disabled={!listening}
-                className="bg-red-500 hover:bg-red-600 text-white"
-              >
-                <Square className="h-4 w-4 mr-2" />
-                Stop Recording
-              </Button>
-              
-              <Button
-                onClick={handleReset}
-                variant="neutral"
-              >
-                Reset
-              </Button>
-            </div>
-            
-            <div className="text-sm text-gray-600">
-              Words processed: {processedWords} | Batch size: {batchSize} | Context window: {slidingWindowSize}
-            </div>
-          </div>
-          
-          {/* Current transcript */}
-          {transcript && (
-            <Card className="mb-4">
-              <CardContent className="p-4">
-                <h3 className="font-semibold mb-2">Current Transcript:</h3>
-                <p className="text-sm text-gray-700">{transcript}</p>
-              </CardContent>
-            </Card>
-          )}
-          
-          {/* Processing status */}
-          {processingStatus && (
-            <Card className="mb-4">
-              <CardContent className="p-4">
-                <p className="text-sm font-medium text-blue-600">{processingStatus}</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {/* Note Content */}
+        <NoteRenderer note={note} />
       </div>
-
-      {/* Note Content */}
-      <NoteRenderer note={note} />
-    </div>
+    </TooltipProvider>
   );
 } 

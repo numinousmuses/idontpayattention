@@ -107,7 +107,7 @@ class LLMProcessingQueue {
                       type: "object",
                       properties: {
                         content: { type: "string" },
-                        background: { type: "number", minimum: 0, maximum: 9.5 },
+                        background: { type: "number", minimum: 0, maximum: 9.5, not: { const: 2 } },
                         width: { type: "string", enum: ["1/1", "1/2", "1/3", "1/4", "2/3", "3/4"] }
                       },
                       required: ["content", "width"],
@@ -116,22 +116,23 @@ class LLMProcessingQueue {
                     {
                       type: "object",
                       properties: {
-                        config: { type: "object" },
+                        chartType: { type: "string", enum: ["area", "bar", "line", "pie"] },
                         chartData: { type: "array", items: { type: "object" } },
+                        chartConfig: { type: "object" },
                         heading: { type: "string" },
                         subheading: { type: "string" },
                         description: { type: "string" },
-                        background: { type: "number", minimum: 0, maximum: 9.5 },
+                        background: { type: "number", minimum: 0, maximum: 9.5, not: { const: 2 } },
                         width: { type: "string", enum: ["1/1", "1/2", "1/3", "1/4", "2/3", "3/4"] }
                       },
-                      required: ["config", "chartData", "heading", "width"],
+                      required: ["chartType", "chartData", "chartConfig", "heading", "width"],
                       additionalProperties: false
                     },
                     {
                       type: "object",
                       properties: {
                         content: { type: "array", items: { type: "string" } },
-                        background: { type: "number", minimum: 0, maximum: 9.5 }
+                        background: { type: "number", minimum: 0, maximum: 9.5, not: { const: 2 } }
                       },
                       required: ["content"],
                       additionalProperties: false
@@ -168,53 +169,62 @@ You are an AI assistant that converts meeting transcripts into structured conten
 ${contextSection}Given the following transcript, create meaningful content blocks that summarize, analyze, or present the information in different formats:
 
 1. **Text blocks** - Use markdown format for summaries, key points, action items, etc.
-2. **Graph blocks** - When data, numbers, or trends are mentioned, create chart configurations using Recharts
+2. **Graph blocks** - When data, numbers, or trends are mentioned, create charts using Recharts
 3. **Marquee blocks** - For important announcements, key phrases, or highlights
 
 Guidelines:
 - Create multiple content blocks to organize information logically
-- Use appropriate background colors (0-9.5) to create visual hierarchy
+- Use appropriate background colors (0, 1, 3-9.5) to create visual hierarchy - NEVER use background level 2 as it conflicts with the page grid background
 - Vary block widths (1/1, 1/2, 1/3, 1/4, 2/3, 3/4) for better layout
 - Keep marquee content concise and impactful
 
-## Graph Block Chart Configuration
+## Graph Block Configuration
 
-For graph blocks, the "config" should be a ChartConfig object that maps data keys to labels and colors. Use these predefined color variables:
-- "var(--chart-1)" for the first data series
-- "var(--chart-2)" for the second data series  
-- "var(--chart-3)" for the third data series
-- "var(--chart-4)" for the fourth data series
-- "var(--chart-5)" for the fifth data series
+For graph blocks, you have full freedom with Recharts configuration. Each graph block needs:
 
-### Example Chart Types and Data Structures. It all uses ReCharts under the hood, so anything you can do with ReCharts you can do here:
+1. **chartType**: Choose from "area", "bar", "line", or "pie"
+2. **chartData**: Array of objects with your data
+3. **chartConfig**: Object with configuration options
+4. **heading**: Chart title
+5. **subheading**: Optional subtitle
+6. **description**: Optional description
+7. **background**: Optional background color (0-9.5)
+8. **width**: Block width (1/1, 1/2, 1/3, 1/4, 2/3, 3/4)
 
-**Area Charts:**
-- Data: Array of objects with date/time keys and numeric values
-- Config example: {"desktop": {"label": "Desktop", "color": "var(--chart-1)"}, "mobile": {"label": "Mobile", "color": "var(--chart-2)"}}
-- Data example: [{"month": "January", "desktop": 186, "mobile": 80}, {"month": "February", "desktop": 305, "mobile": 200}]
+### Chart Types and Examples:
 
-**Bar Charts:**
-- Data: Array of objects with category keys and numeric values
-- Config example: {"running": {"label": "Running", "color": "var(--chart-1)"}, "swimming": {"label": "Swimming", "color": "var(--chart-2)"}}
-- Data example: [{"date": "2024-07-15", "running": 450, "swimming": 300}, {"date": "2024-07-16", "running": 380, "swimming": 420}]
+**Area Charts** (chartType: "area"):
+- Good for showing trends over time
+- Data example: [{"month": "Jan", "revenue": 1200, "expenses": 800}, {"month": "Feb", "revenue": 1400, "expenses": 900}]
+- Config example: {"xAxisKey": "month"}
 
-**Line Charts:**
-- Data: Array of objects with date/time keys and numeric values
-- Config example: {"visitors": {"label": "Visitors"}, "desktop": {"label": "Desktop", "color": "var(--chart-1)"}, "mobile": {"label": "Mobile", "color": "var(--chart-2)"}}
-- Data example: [{"date": "2024-04-01", "desktop": 222, "mobile": 150}, {"date": "2024-04-02", "desktop": 97, "mobile": 180}]
+**Bar Charts** (chartType: "bar"):
+- Good for comparing categories
+- Data example: [{"category": "Q1", "sales": 1200, "profit": 400}, {"category": "Q2", "sales": 1500, "profit": 600}]
+- Config example: {"xAxisKey": "category"}
 
-**Pie Charts:**
-- Data: Array of objects with category, value, and fill properties
-- Config example: {"visitors": {"label": "Visitors"}, "chrome": {"label": "Chrome", "color": "var(--chart-1)"}, "safari": {"label": "Safari", "color": "var(--chart-2)"}}
-- Data example: [{"browser": "chrome", "visitors": 275, "fill": "var(--color-chrome)"}, {"browser": "safari", "visitors": 200, "fill": "var(--color-safari)"}]
+**Line Charts** (chartType: "line"):
+- Good for showing trends and changes
+- Data example: [{"date": "2024-01", "users": 1000, "sessions": 1500}, {"date": "2024-02", "users": 1200, "sessions": 1800}]
+- Config example: {"xAxisKey": "date"}
+
+**Pie Charts** (chartType: "pie"):
+- Good for showing proportions
+- Data example: [{"name": "Mobile", "value": 45}, {"name": "Desktop", "value": 35}, {"name": "Tablet", "value": 20}]
+- Config example: {"dataKey": "value", "nameKey": "name"}
+
+### Configuration Options:
+- **xAxisKey**: For area/bar/line charts, specifies which data key to use for X-axis (defaults to "name")
+- **dataKey**: For pie charts, specifies which data key contains values (defaults to "value")
+- **nameKey**: For pie charts, specifies which data key contains labels (defaults to "name")
 
 ### Important Notes:
-- ALWAYS include both "config" and "chartData" properties in every graph block - no exceptions
+- ALWAYS include chartType, chartData, chartConfig, and heading - no exceptions
 - NEVER leave any required fields empty or missing - all content must be complete
+- NEVER use background level 2 - this color is reserved for the page grid pattern
 - Use realistic data that relates to the transcript content
 - Choose appropriate chart types based on the data being presented
-- Ensure data keys in chartData match the keys defined in config
-- Use meaningful labels for better understanding
+- Ensure data structure matches the chart type requirements
 - If there isn't enough data for a chart, create a text block instead
 - All content blocks must have valid, complete data - no placeholders or empty values
 

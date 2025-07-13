@@ -39,8 +39,8 @@ export default function TextBlock({ block, noteColor }: TextBlockProps) {
   };
 
   return (
-    <div className={`${getWidthClass()} p-2`}>
-      <Card className={`${getBackgroundColor()} border-2 border-black`}>
+    <div className={`${getWidthClass()} p-2 flex`}>
+      <Card className={`${getBackgroundColor()} border-2 border-black flex-1`}>
         <CardContent className="p-4">
           <div className="prose prose-sm max-w-none text-black">
             <ReactMarkdown

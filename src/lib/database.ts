@@ -91,4 +91,35 @@ export const saveNote = async (note: Note): Promise<void> => {
 
 export const deleteNote = async (id: string): Promise<void> => {
   await db.notes.delete(id);
+};
+
+export const duplicateNote = async (id: string): Promise<Note | null> => {
+  try {
+    const originalNote = await db.notes.get(id);
+    if (!originalNote) return null;
+    
+    const duplicatedNote: Note = {
+      ...originalNote,
+      id: crypto.randomUUID(),
+      title: `${originalNote.title} (Copy)`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    await db.notes.put(duplicatedNote);
+    return duplicatedNote;
+  } catch (error) {
+    console.error('Failed to duplicate note:', error);
+    toast.error('Failed to duplicate note');
+    return null;
+  }
+};
+
+export const updateNoteTitle = async (id: string, title: string): Promise<void> => {
+  try {
+    await db.notes.update(id, { title, updatedAt: new Date() });
+  } catch (error) {
+    console.error('Failed to update note title:', error);
+    toast.error('Failed to update note title');
+  }
 }; 

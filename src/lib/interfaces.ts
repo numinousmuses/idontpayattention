@@ -1,5 +1,3 @@
-import { ChartConfig } from "@/components/ui/chart";
-
 export interface Model {
     name: string;
     modelString: string;
@@ -17,22 +15,24 @@ export interface Config {
 }
 
 export interface GraphBlock {
-    config: ChartConfig;
+    chartType: "area" | "bar" | "line" | "pie" | "scatter" | "composed";
+    chartData: Array<Record<string, string | number>>;
+    chartConfig: Record<string, string | number | boolean | object>; // Full Recharts component configuration
     heading: string;
     subheading?: string;
     description?: string;
-    background?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 9.5;
+    background?: 0 | 1 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 9.5;
     width: "1/1" | "1/2" | "1/3" | "1/4" | "2/3" | "3/4" ;
 }
 
 export interface MarqueeBlock {
     content: string[];
-    background?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 9.5;
+    background?: 0 | 1 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 9.5;
 }
 
 export interface TextBlock {
     content: string;
-    background?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 9.5;
+    background?: 0 | 1 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 9.5;
     width: "1/1" | "1/2" | "1/3" | "1/4" | "2/3" | "3/4" ;
 }
 

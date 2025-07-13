@@ -49,7 +49,7 @@ export default function ForeverFreeSection() {
       
       <div className="px-4 mb-12 relative z-10">
         <h2 className="text-4xl md:text-5xl font-bold text-center text-black">
-          With forever free, you get:
+          Forever free, you get:
         </h2>
       </div>
       

@@ -51,6 +51,7 @@ export default function SettingsModal({ children }: SettingsModalProps) {
   });
   const [batchSize, setBatchSize] = useState(20000);
   const [slidingWindowSize, setSlidingWindowSize] = useState(5000);
+  const [isMounted, setIsMounted] = useState(false);
 
   const colorOptions = [
     'neutral', 'stone', 'zinc', 'slate', 'gray', 'red', 'orange', 'amber',
@@ -83,6 +84,10 @@ export default function SettingsModal({ children }: SettingsModalProps) {
     'pink': 'bg-pink-500',
     'rose': 'bg-rose-500'
   };
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -214,6 +219,32 @@ export default function SettingsModal({ children }: SettingsModalProps) {
     }
   };
 
+  // Prevent hydration mismatch
+  if (!isMounted) {
+    return (
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          {children || (
+            <Button variant="neutral" size="icon">
+              <Settings className="h-4 w-4" />
+            </Button>
+          )}
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+            <DialogDescription>
+              Manage your AI models and configuration settings.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -239,7 +270,7 @@ export default function SettingsModal({ children }: SettingsModalProps) {
               <Input
                 id="batchSize"
                 type="number"
-                value={batchSize}
+                value={batchSize || 20000}
                 onChange={(e) => setBatchSize(Number(e.target.value))}
                 min="1"
                 max="100"
@@ -261,7 +292,7 @@ export default function SettingsModal({ children }: SettingsModalProps) {
               <Input
                 id="slidingWindowSize"
                 type="number"
-                value={slidingWindowSize}
+                value={slidingWindowSize || 5000}
                 onChange={(e) => setSlidingWindowSize(Number(e.target.value))}
                 min="1000"
                 max="10000"
@@ -290,23 +321,23 @@ export default function SettingsModal({ children }: SettingsModalProps) {
                   {editingModel?.name === model.name ? (
                     <div className="flex-1 space-y-2">
                       <Input
-                        value={editingModel.modelString}
+                        value={editingModel.modelString ?? ''}
                         onChange={(e) => setEditingModel({ ...editingModel, modelString: e.target.value })}
                         placeholder="Model String"
                       />
                       <Input
-                        value={editingModel.baseUrl}
+                        value={editingModel.baseUrl ?? ''}
                         onChange={(e) => setEditingModel({ ...editingModel, baseUrl: e.target.value })}
                         placeholder="Base URL"
                       />
                       <Input
-                        value={editingModel.apiKey}
+                        value={editingModel.apiKey ?? ''}
                         onChange={(e) => setEditingModel({ ...editingModel, apiKey: e.target.value })}
                         placeholder="API Key"
                         type="password"
                       />
                       <Select
-                        value={editingModel.defaultColor}
+                        value={editingModel.defaultColor ?? 'blue'}
                         onValueChange={(value) => setEditingModel({ ...editingModel, defaultColor: value })}
                       >
                         <SelectTrigger>
@@ -386,7 +417,7 @@ export default function SettingsModal({ children }: SettingsModalProps) {
                   <Label htmlFor="newModelName">Name</Label>
                   <Input
                     id="newModelName"
-                    value={newModel.name}
+                    value={newModel.name ?? ''}
                     onChange={(e) => setNewModel({ ...newModel, name: e.target.value })}
                     placeholder="Model Name"
                   />
@@ -395,7 +426,7 @@ export default function SettingsModal({ children }: SettingsModalProps) {
                   <Label htmlFor="newModelString">Model String</Label>
                   <Input
                     id="newModelString"
-                    value={newModel.modelString}
+                    value={newModel.modelString ?? ''}
                     onChange={(e) => setNewModel({ ...newModel, modelString: e.target.value })}
                     placeholder="gpt-4o"
                   />
@@ -405,7 +436,7 @@ export default function SettingsModal({ children }: SettingsModalProps) {
                 <Label htmlFor="newModelBaseUrl">Base URL</Label>
                 <Input
                   id="newModelBaseUrl"
-                  value={newModel.baseUrl}
+                  value={newModel.baseUrl ?? ''}
                   onChange={(e) => setNewModel({ ...newModel, baseUrl: e.target.value })}
                   placeholder="https://api.openai.com/v1"
                 />
@@ -415,7 +446,7 @@ export default function SettingsModal({ children }: SettingsModalProps) {
                 <Input
                   id="newModelApiKey"
                   type="password"
-                  value={newModel.apiKey}
+                  value={newModel.apiKey ?? ''}
                   onChange={(e) => setNewModel({ ...newModel, apiKey: e.target.value })}
                   placeholder="sk-..."
                 />
@@ -424,7 +455,7 @@ export default function SettingsModal({ children }: SettingsModalProps) {
                 <div>
                   <Label htmlFor="newModelColor">Default Color</Label>
                   <Select
-                    value={newModel.defaultColor}
+                    value={newModel.defaultColor ?? 'blue'}
                     onValueChange={(value) => setNewModel({ ...newModel, defaultColor: value })}
                   >
                     <SelectTrigger>
