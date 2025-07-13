@@ -8,12 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Mic, Square, ArrowLeft, RotateCcw, Settings, Edit2, Check, X, ChevronUp, ChevronDown, Menu } from 'lucide-react';
+import { Mic, Square, ArrowLeft, RotateCcw, Settings, Edit2, Check, X, ChevronUp, ChevronDown, Menu, FileEdit, Wand2, Loader2 } from 'lucide-react';
 import { Note, ContentBlock } from '@/lib/interfaces';
-import { getNote, saveNote, initializeDatabase, getConfig } from '@/lib/database';
-import { processTranscriptBatch } from '@/lib/llm-processor';
+import { getNote, saveNote, initializeDatabase, getConfig, updateNote } from '@/lib/database';
+import { processTranscriptBatch, getAvailableModel } from '@/lib/llm-processor';
 import NoteRenderer from '@/components/NoteRenderer';
 import SettingsModal from '@/components/SettingsModal';
+import NoteEditor from '@/components/NoteEditor';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Textarea } from '@/components/ui/textarea';
+import OpenAI from 'openai';
 
 
 export default function NotePage() {
@@ -33,6 +37,9 @@ export default function NotePage() {
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
   
   const wordCountRef = useRef(0);
   const lastProcessedTranscriptRef = useRef('');
@@ -312,6 +319,93 @@ export default function NotePage() {
     setTempTitle('');
   };
 
+  const handleNoteUpdate = (updatedNote: Note) => {
+    setNote(updatedNote);
+    setIsEditorOpen(false);
+  };
+
+  const handleAiEdit = async () => {
+    if (!note || !aiPrompt.trim()) {
+      toast.error('Please enter a prompt');
+      return;
+    }
+
+    setIsAiProcessing(true);
+    try {
+      const model = await getAvailableModel();
+      if (!model) {
+        toast.error('No AI model configured');
+        return;
+      }
+
+      const openai = new OpenAI({
+        apiKey: model.apiKey,
+        baseURL: model.baseUrl,
+        dangerouslyAllowBrowser: true,
+      });
+
+      const prompt = `
+You are an AI assistant that helps edit note content based on user prompts. 
+
+Current note content (JSON format):
+${JSON.stringify(note.content, null, 2)}
+
+User prompt: ${aiPrompt}
+
+Please modify the note content according to the user's request. You can:
+1. Add new content blocks
+2. Modify existing content blocks
+3. Reorder content blocks
+4. Delete content blocks
+5. Change styling (background colors, widths, etc.)
+
+Return the modified content in the same JSON format. Ensure all required fields are present and valid.
+
+Guidelines:
+- Keep the same structure (ContentBlock array with type and content)
+- For text blocks: ensure content is markdown string with proper width
+- For graph blocks: ensure chartType, chartData, chartConfig, and heading are present
+- For marquee blocks: ensure content is array of strings
+- Use background colors 0, 1, 3-9.5 (never 2)
+- Use valid width values: "1/1", "1/2", "1/3", "1/4", "2/3", "3/4"
+`;
+
+      const completion = await openai.chat.completions.create({
+        model: model.modelString,
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert at editing structured note content. Always respond with valid JSON."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 4000,
+      });
+
+      const responseText = completion.choices[0].message.content;
+      if (!responseText) {
+        throw new Error('No response from AI');
+      }
+
+      const newContent = JSON.parse(responseText);
+      const updatedNote = { ...note, content: newContent, updatedAt: new Date() };
+      
+      await updateNote(updatedNote);
+      setNote(updatedNote);
+      setAiPrompt('');
+      toast.success('Note updated with AI');
+    } catch (error) {
+      console.error('AI edit failed:', error);
+      toast.error('Failed to process AI edit');
+    } finally {
+      setIsAiProcessing(false);
+    }
+  };
+
   // Prevent hydration mismatch by not rendering until mounted
   if (!isMounted) {
     return (
@@ -355,7 +449,7 @@ export default function NotePage() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
         {/* Consolidated Header */}
         {!isHeaderCollapsed && (
           <div className="bg-white border-b-2 border-black p-4 transition-all duration-300">
@@ -366,13 +460,13 @@ export default function NotePage() {
                   <div className="flex items-center gap-2">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          variant="neutral"
-                          size="icon"
-                          onClick={() => router.push('/app')}
-                        >
-                          <ArrowLeft className="h-4 w-4" />
-                        </Button>
+            <Button
+              variant="neutral"
+              size="icon"
+              onClick={() => router.push('/app')}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>Back to notes</p>
@@ -423,13 +517,13 @@ export default function NotePage() {
                         </div>
                       )}
                     </div>
-                  </div>
-                  
+          </div>
+          
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <div className={`w-2 h-2 rounded-full ${listening ? 'bg-red-500' : 'bg-gray-300'}`}></div>
-                      {isProcessing && (
-                        <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+              <div className="flex items-center gap-1">
+                <div className={`w-2 h-2 rounded-full ${listening ? 'bg-red-500' : 'bg-gray-300'}`}></div>
+              {isProcessing && (
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
                       )}
                     </div>
                     
@@ -516,21 +610,75 @@ export default function NotePage() {
                         </TooltipContent>
                       </Tooltip>
                       
-                      <SettingsModal>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="icon"
-                              variant="neutral"
+                                        <SettingsModal>
+                    <Button
+                      size="icon"
+                      variant="neutral"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </SettingsModal>
+                  
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="neutral"
+                          >
+                            <Wand2 className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                          <div className="space-y-3">
+                            <h4 className="font-medium">AI Edit</h4>
+                            <Textarea
+                              placeholder="Describe how you want to modify the note..."
+                              value={aiPrompt}
+                              onChange={(e) => setAiPrompt(e.target.value)}
+                              rows={3}
+                            />
+                            <Button 
+                              onClick={handleAiEdit} 
+                              disabled={isAiProcessing}
+                              className="w-full"
                             >
-                              <Settings className="h-4 w-4" />
+                              {isAiProcessing ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <Wand2 className="h-4 w-4 mr-2" />
+                                  Apply AI Edit
+                                </>
+                              )}
                             </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Settings</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </SettingsModal>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit with AI</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="neutral"
+                        onClick={() => setIsEditorOpen(true)}
+                      >
+                        <FileEdit className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit note content</p>
+                    </TooltipContent>
+                  </Tooltip>
                     </div>
                     
                     <div className="mt-3 text-sm text-gray-600">
@@ -540,10 +688,10 @@ export default function NotePage() {
                         <span>Words: {processedWords}</span>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-              
+                </div>
+              )}
+            </div>
+            
               {/* Desktop Header */}
               <div className="hidden md:flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -621,54 +769,54 @@ export default function NotePage() {
                             <p>Edit title</p>
                           </TooltipContent>
                         </Tooltip>
-                      </div>
+          </div>
                     )}
-                  </div>
-                </div>
-                
+        </div>
+      </div>
+
                 <div className="flex items-center gap-2">
                   {/* Recording controls */}
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
+              <Button
                         size="icon"
-                        onClick={handleStartListening}
-                        disabled={listening}
+                onClick={handleStartListening}
+                disabled={listening}
                         className="bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300"
-                      >
+              >
                         <Mic className="h-4 w-4" />
-                      </Button>
+              </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Start recording</p>
                     </TooltipContent>
                   </Tooltip>
-                  
+              
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
+              <Button
                         size="icon"
-                        onClick={handleStopListening}
-                        disabled={!listening}
+                onClick={handleStopListening}
+                disabled={!listening}
                         className="bg-red-500 hover:bg-red-600 text-white disabled:bg-gray-300"
-                      >
+              >
                         <Square className="h-4 w-4" />
-                      </Button>
+              </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Stop recording</p>
                     </TooltipContent>
                   </Tooltip>
-                  
+              
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
+              <Button
                         size="icon"
-                        onClick={handleReset}
-                        variant="neutral"
-                      >
+                onClick={handleReset}
+                variant="neutral"
+              >
                         <RotateCcw className="h-4 w-4" />
-                      </Button>
+              </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Reset transcript</p>
@@ -688,23 +836,77 @@ export default function NotePage() {
                       </div>
                     )}
                     <span className="text-gray-500">Words: {processedWords}</span>
-                  </div>
-                  
-                  <SettingsModal>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
+            </div>
+            
+                                                              <SettingsModal>
                         <Button
                           size="icon"
                           variant="neutral"
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Settings</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </SettingsModal>
+                      </SettingsModal>
+                      
+                                        <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="neutral"
+                          >
+                            <Wand2 className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                          <div className="space-y-3">
+                            <h4 className="font-medium">AI Edit</h4>
+                            <Textarea
+                              placeholder="Describe how you want to modify the note..."
+                              value={aiPrompt}
+                              onChange={(e) => setAiPrompt(e.target.value)}
+                              rows={3}
+                            />
+                            <Button 
+                              onClick={handleAiEdit} 
+                              disabled={isAiProcessing}
+                              className="w-full"
+                            >
+                              {isAiProcessing ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <Wand2 className="h-4 w-4 mr-2" />
+                                  Apply AI Edit
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit with AI</p>
+                    </TooltipContent>
+                  </Tooltip>
+                      
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="neutral"
+                            onClick={() => setIsEditorOpen(true)}
+                          >
+                            <FileEdit className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit note content</p>
+                        </TooltipContent>
+                      </Tooltip>
                   
                   {/* Collapse Toggle */}
                   <Tooltip>
@@ -726,7 +928,7 @@ export default function NotePage() {
             </div>
           </div>
         )}
-        
+          
         {/* Floating Expand Button */}
         {isHeaderCollapsed && (
           <div className="fixed top-4 right-4 z-50">
@@ -752,29 +954,38 @@ export default function NotePage() {
         {(transcript || processingStatus) && (
           <div className="bg-white border-b-2 border-black p-4">
             <div className="max-w-6xl mx-auto">
-              {transcript && (
-                <Card className="mb-4">
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-2">Current Transcript:</h3>
-                    <p className="text-sm text-gray-700">{transcript}</p>
-                  </CardContent>
-                </Card>
-              )}
-              
-              {processingStatus && (
+          {transcript && (
+            <Card className="mb-4">
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-2">Current Transcript:</h3>
+                <p className="text-sm text-gray-700">{transcript}</p>
+              </CardContent>
+            </Card>
+          )}
+          
+          {processingStatus && (
                 <Card>
-                  <CardContent className="p-4">
-                    <p className="text-sm font-medium text-blue-600">{processingStatus}</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
+              <CardContent className="p-4">
+                <p className="text-sm font-medium text-blue-600">{processingStatus}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
         )}
 
-        {/* Note Content */}
-        <NoteRenderer note={note} />
-      </div>
+      {/* Note Content */}
+      <NoteRenderer note={note} />
+      
+      {/* Note Editor */}
+      {isEditorOpen && (
+        <NoteEditor
+          note={note}
+          onNoteUpdate={handleNoteUpdate}
+          onClose={() => setIsEditorOpen(false)}
+        />
+      )}
+    </div>
     </TooltipProvider>
   );
 } 

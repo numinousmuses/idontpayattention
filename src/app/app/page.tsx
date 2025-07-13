@@ -146,7 +146,7 @@ export default function AppPage() {
 
   return (
     <TooltipProvider>
-      <section className="relative flex-grow w-full flex flex-col items-center justify-center overflow-hidden p-4 h-screen">
+    <section className="relative flex-grow w-full flex flex-col items-center justify-center overflow-hidden p-4 h-screen">
       {/* Settings icon in top right */}
       <div className="absolute top-4 right-4 z-20">
         <SettingsModal>

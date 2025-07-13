@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Eye, Code, ChevronUp, ChevronDown, Menu } from 'lucide-react';
+import { ArrowLeft, ChevronUp, ChevronDown, Menu } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Note } from '@/lib/interfaces';
 import { getSampleNote } from '@/lib/sample-notes';
@@ -16,7 +16,6 @@ export default function ExampleNotePage() {
   const exampleSlug = params.exampleslug as string;
   
   const [note, setNote] = useState<Note | null>(null);
-  const [showJson, setShowJson] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -129,21 +128,7 @@ export default function ExampleNotePage() {
                 {isMobileMenuOpen && (
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="flex justify-center">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant={showJson ? "default" : "neutral"}
-                            size="sm"
-                            onClick={() => setShowJson(!showJson)}
-                          >
-                            {showJson ? <Eye className="h-4 w-4 mr-2" /> : <Code className="h-4 w-4 mr-2" />}
-                            {showJson ? 'View Note' : 'View JSON'}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{showJson ? 'Switch to note view' : 'View JSON structure'}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <p className="text-sm text-gray-600">No additional controls</p>
                     </div>
                   </div>
                 )}
@@ -173,21 +158,6 @@ export default function ExampleNotePage() {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={showJson ? "default" : "neutral"}
-                        size="sm"
-                        onClick={() => setShowJson(!showJson)}
-                      >
-                        {showJson ? <Eye className="h-4 w-4 mr-2" /> : <Code className="h-4 w-4 mr-2" />}
-                        {showJson ? 'View Note' : 'View JSON'}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{showJson ? 'Switch to note view' : 'View JSON structure'}</p>
-                    </TooltipContent>
-                  </Tooltip>
                   
                   {/* Collapse Toggle */}
                   <Tooltip>
@@ -232,20 +202,7 @@ export default function ExampleNotePage() {
         )}
 
         {/* Content */}
-        {showJson ? (
-          <div className="max-w-6xl mx-auto p-4">
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Note Data Structure</h3>
-                <pre className="bg-gray-100 p-4 rounded-lg overflow-auto text-sm">
-                  <code>{JSON.stringify(note, null, 2)}</code>
-                </pre>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <NoteRenderer note={note} />
-        )}
+        <NoteRenderer note={note} />
       </div>
     </TooltipProvider>
   );

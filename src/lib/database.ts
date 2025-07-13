@@ -122,4 +122,15 @@ export const updateNoteTitle = async (id: string, title: string): Promise<void> 
     console.error('Failed to update note title:', error);
     toast.error('Failed to update note title');
   }
+};
+
+export const updateNote = async (note: Note): Promise<void> => {
+  try {
+    await db.notes.put(note);
+  } catch (error) {
+    console.error('Failed to update note:', error);
+    toast.error('Failed to update note', {
+      description: 'Your changes may not be saved'
+    });
+  }
 }; 
