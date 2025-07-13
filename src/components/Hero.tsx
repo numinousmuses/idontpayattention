@@ -55,13 +55,9 @@ export default function Hero() {
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
         <div>
           <h1 className="text-4xl md:text-6xl xl:text-8xl font-bold text-black tracking-tight">
-            {isAlias ? "I don’t pay attention" : "I don’t f!cking pay attention"}
+            {isAlias ? "I don’t pay attention to" : "I don’t f!cking pay attention to"}
           </h1>
           <div className="mt-4 xl:mt-8 flex flex-col justify-center items-center gap-2 xl:gap-4">
-            <span className="text-4xl md:text-6xl xl:text-8xl font-bold text-black tracking-tight">
-              to
-            </span>
-            
             {/* Embla Carousel */}
             <div className="overflow-hidden w-full max-w-xs md:max-w-md xl:max-w-lg py-2 md:py-4" ref={emblaRef}>
               <div className="flex">
