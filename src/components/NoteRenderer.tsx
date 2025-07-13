@@ -2,6 +2,7 @@
 
 import { Note } from '@/lib/interfaces';
 import ContentBlockRenderer from './content-blocks/ContentBlockRenderer';
+import { getBackgroundColorClass } from '@/lib/utils';
 
 interface NoteRendererProps {
   note: Note;
@@ -10,7 +11,7 @@ interface NoteRendererProps {
 export default function NoteRenderer({ note }: NoteRendererProps) {
   // Calculate background color based on note color
   const getBackgroundColor = () => {
-    return `bg-${note.color}-100`;
+    return getBackgroundColorClass(note.color, 100);
   };
 
   const formatDate = (date: Date) => {

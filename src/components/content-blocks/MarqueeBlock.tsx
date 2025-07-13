@@ -2,6 +2,7 @@
 
 import Marquee from '@/components/ui/marquee';
 import { MarqueeBlock as MarqueeBlockType } from '@/lib/interfaces';
+import { getBackgroundColorClass } from '@/lib/utils';
 
 interface MarqueeBlockProps {
   block: MarqueeBlockType;
@@ -15,7 +16,7 @@ export default function MarqueeBlock({ block, noteColor }: MarqueeBlockProps) {
     
     // Map background value to Tailwind color weight
     const weight = Math.round(block.background * 100);
-    return `bg-${noteColor}-${weight}`;
+    return getBackgroundColorClass(noteColor, weight);
   };
 
   return (

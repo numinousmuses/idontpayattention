@@ -3,6 +3,7 @@
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent } from '@/components/ui/card';
 import { TextBlock as TextBlockType } from '@/lib/interfaces';
+import { getBackgroundColorClass } from '@/lib/utils';
 
 interface TextBlockProps {
   block: TextBlockType;
@@ -16,7 +17,7 @@ export default function TextBlock({ block, noteColor }: TextBlockProps) {
     
     // Map background value to Tailwind color weight
     const weight = Math.round(block.background * 100);
-    return `bg-${noteColor}-${weight}`;
+    return getBackgroundColorClass(noteColor, weight);
   };
 
   // Calculate width classes

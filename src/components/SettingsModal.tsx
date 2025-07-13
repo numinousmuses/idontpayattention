@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Settings } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,6 +31,7 @@ import {
   deleteModel,
   initializeDatabase 
 } from '@/lib/database';
+import ConfirmationPopover from '@/components/ui/confirmation-popover';
 
 interface SettingsModalProps {
   children?: React.ReactNode;
@@ -47,13 +49,40 @@ export default function SettingsModal({ children }: SettingsModalProps) {
     apiKey: '',
     defaultColor: 'blue',
   });
-  const [batchSize, setBatchSize] = useState(10);
+  const [batchSize, setBatchSize] = useState(20000);
+  const [slidingWindowSize, setSlidingWindowSize] = useState(5000);
 
   const colorOptions = [
     'neutral', 'stone', 'zinc', 'slate', 'gray', 'red', 'orange', 'amber',
     'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue',
     'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'
   ];
+
+  // Color mapping to ensure Tailwind includes these classes
+  const colorClasses: Record<string, string> = {
+    'neutral': 'bg-neutral-500',
+    'stone': 'bg-stone-500',
+    'zinc': 'bg-zinc-500',
+    'slate': 'bg-slate-500',
+    'gray': 'bg-gray-500',
+    'red': 'bg-red-500',
+    'orange': 'bg-orange-500',
+    'amber': 'bg-amber-500',
+    'yellow': 'bg-yellow-500',
+    'lime': 'bg-lime-500',
+    'green': 'bg-green-500',
+    'emerald': 'bg-emerald-500',
+    'teal': 'bg-teal-500',
+    'cyan': 'bg-cyan-500',
+    'sky': 'bg-sky-500',
+    'blue': 'bg-blue-500',
+    'indigo': 'bg-indigo-500',
+    'violet': 'bg-violet-500',
+    'purple': 'bg-purple-500',
+    'fuchsia': 'bg-fuchsia-500',
+    'pink': 'bg-pink-500',
+    'rose': 'bg-rose-500'
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -70,6 +99,7 @@ export default function SettingsModal({ children }: SettingsModalProps) {
       ]);
       setModels(modelsData);
       setBatchSize(configData.batchSize);
+      setSlidingWindowSize(configData.slidingWindowSize);
     } catch (error) {
       console.error('Failed to load data:', error);
     }
@@ -78,15 +108,36 @@ export default function SettingsModal({ children }: SettingsModalProps) {
   const handleSaveBatchSize = async () => {
     try {
       await updateConfig({ batchSize });
-      console.log('Batch size updated successfully');
+      toast.success('Batch size updated successfully', {
+        description: `Now processing every ${batchSize} words`
+      });
     } catch (error) {
       console.error('Failed to update batch size:', error);
+      toast.error('Failed to update batch size', {
+        description: 'Please try again'
+      });
+    }
+  };
+
+  const handleSaveSlidingWindowSize = async () => {
+    try {
+      await updateConfig({ slidingWindowSize });
+      toast.success('Sliding window size updated successfully', {
+        description: `Context window set to ${slidingWindowSize} words`
+      });
+    } catch (error) {
+      console.error('Failed to update sliding window size:', error);
+      toast.error('Failed to update sliding window size', {
+        description: 'Please try again'
+      });
     }
   };
 
   const handleAddModel = async () => {
     if (!newModel.name || !newModel.modelString || !newModel.baseUrl) {
-      alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields', {
+        description: 'Name, Model String, and Base URL are required'
+      });
       return;
     }
 
@@ -110,15 +161,20 @@ export default function SettingsModal({ children }: SettingsModalProps) {
         defaultColor: 'blue',
       });
       await loadData();
+      toast.success('Model added successfully', {
+        description: `${modelToAdd.name} is now available`
+      });
     } catch (error) {
       console.error('Failed to add model:', error);
-      alert('Failed to add model. Model name might already exist.');
+      toast.error('Failed to add model', {
+        description: 'Model name might already exist'
+      });
     }
   };
 
   const handleEditModel = async (model: Model) => {
     if (!editingModel?.name || !editingModel?.modelString || !editingModel?.baseUrl) {
-      alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -132,21 +188,29 @@ export default function SettingsModal({ children }: SettingsModalProps) {
       });
       setEditingModel(null);
       await loadData();
+      toast.success('Model updated successfully', {
+        description: `${model.name} has been updated`
+      });
     } catch (error) {
       console.error('Failed to update model:', error);
-      alert('Failed to update model');
+      toast.error('Failed to update model', {
+        description: 'Please try again'
+      });
     }
   };
 
   const handleDeleteModel = async (modelName: string) => {
-    if (confirm(`Are you sure you want to delete the model "${modelName}"?`)) {
-      try {
-        await deleteModel(modelName);
-        await loadData();
-      } catch (error) {
-        console.error('Failed to delete model:', error);
-        alert('Failed to delete model');
-      }
+    try {
+      await deleteModel(modelName);
+      await loadData();
+      toast.success('Model deleted successfully', {
+        description: `${modelName} has been removed`
+      });
+    } catch (error) {
+      console.error('Failed to delete model:', error);
+      toast.error('Failed to delete model', {
+        description: 'Please try again'
+      });
     }
   };
 
@@ -190,6 +254,29 @@ export default function SettingsModal({ children }: SettingsModalProps) {
             </p>
           </div>
 
+          {/* Sliding Window Size Configuration */}
+          <div className="space-y-3">
+            <Label htmlFor="slidingWindowSize">Sliding Window Size</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="slidingWindowSize"
+                type="number"
+                value={slidingWindowSize}
+                onChange={(e) => setSlidingWindowSize(Number(e.target.value))}
+                min="1000"
+                max="10000"
+                step="500"
+                className="flex-1"
+              />
+              <Button onClick={handleSaveSlidingWindowSize} size="sm">
+                Save
+              </Button>
+            </div>
+            <p className="text-sm text-gray-600">
+              Context window size for maintaining conversation continuity (words)
+            </p>
+          </div>
+
           {/* Models Management */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -223,12 +310,22 @@ export default function SettingsModal({ children }: SettingsModalProps) {
                         onValueChange={(value) => setEditingModel({ ...editingModel, defaultColor: value })}
                       >
                         <SelectTrigger>
-                          <SelectValue />
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className={`w-4 h-4 rounded border border-black ${colorClasses[editingModel.defaultColor] || 'bg-blue-500'}`}
+                            ></div>
+                            <SelectValue />
+                          </div>
                         </SelectTrigger>
                         <SelectContent>
                           {colorOptions.map((color) => (
                             <SelectItem key={color} value={color}>
-                              {color}
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className={`w-4 h-4 rounded border border-black ${colorClasses[color] || 'bg-blue-500'}`}
+                                ></div>
+                                {color}
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -259,13 +356,21 @@ export default function SettingsModal({ children }: SettingsModalProps) {
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="neutral"
-                          onClick={() => handleDeleteModel(model.name)}
+                        <ConfirmationPopover
+                          title="Delete Model"
+                          description={`Are you sure you want to delete "${model.name}"? This action cannot be undone.`}
+                          confirmText="Delete"
+                          cancelText="Cancel"
+                          variant="destructive"
+                          onConfirm={() => handleDeleteModel(model.name)}
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <Button
+                            size="sm"
+                            variant="neutral"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </ConfirmationPopover>
                       </div>
                     </>
                   )}
@@ -323,12 +428,22 @@ export default function SettingsModal({ children }: SettingsModalProps) {
                     onValueChange={(value) => setNewModel({ ...newModel, defaultColor: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className={`w-4 h-4 rounded border border-black ${colorClasses[newModel.defaultColor || 'blue'] || 'bg-blue-500'}`}
+                        ></div>
+                        <SelectValue />
+                      </div>
                     </SelectTrigger>
                     <SelectContent>
                       {colorOptions.map((color) => (
                         <SelectItem key={color} value={color}>
-                          {color}
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className={`w-4 h-4 rounded border border-black ${colorClasses[color] || 'bg-blue-500'}`}
+                            ></div>
+                            {color}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>

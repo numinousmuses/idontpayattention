@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Mic, Square, ArrowLeft } from 'lucide-react';
@@ -20,13 +21,16 @@ export default function NotePage() {
   
   const [note, setNote] = useState<Note | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [batchSize, setBatchSize] = useState(10);
+  const [batchSize, setBatchSize] = useState(20000);
+  const [slidingWindowSize, setSlidingWindowSize] = useState(5000);
   const [processedWords, setProcessedWords] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>('');
   
   const wordCountRef = useRef(0);
   const lastProcessedTranscriptRef = useRef('');
+  const transcriptHistoryRef = useRef<string[]>([]);
+  const noteContentHistoryRef = useRef<string>('');
 
   const {
     transcript,
@@ -36,6 +40,127 @@ export default function NotePage() {
     isMicrophoneAvailable,
   } = useSpeechRecognition();
 
+  // Helper function to update note content history
+  const updateNoteContentHistory = useCallback((contentBlocks: ContentBlock[]) => {
+    // Extract text content from blocks for context
+    const textContent = contentBlocks.map(block => {
+      return block.content.map(item => {
+        if ('content' in item) {
+          if (typeof item.content === 'string') {
+            return item.content;
+          } else if (Array.isArray(item.content)) {
+            return item.content.join(' ');
+          }
+        }
+        return '';
+      }).join(' ');
+    }).join(' ');
+    
+    noteContentHistoryRef.current = (noteContentHistoryRef.current + ' ' + textContent).trim();
+    
+    // Trim to sliding window size
+    const words = noteContentHistoryRef.current.split(/\s+/);
+    if (words.length > slidingWindowSize) {
+      noteContentHistoryRef.current = words.slice(-slidingWindowSize).join(' ');
+    }
+  }, [slidingWindowSize]);
+
+  // Helper function to manage sliding window for transcript history
+  const updateTranscriptHistory = useCallback((newTranscript: string) => {
+    transcriptHistoryRef.current.push(newTranscript);
+    
+    // Calculate total words in history
+    const totalWords = transcriptHistoryRef.current.join(' ').split(/\s+/).length;
+    
+    // Remove old entries if we exceed the sliding window size
+    while (totalWords > slidingWindowSize && transcriptHistoryRef.current.length > 1) {
+      transcriptHistoryRef.current.shift();
+    }
+  }, [slidingWindowSize]);
+
+  // Helper function to get transcript context
+  const getTranscriptContext = useCallback((): string => {
+    if (transcriptHistoryRef.current.length <= 1) return '';
+    
+    // Return all but the last entry (which is the current batch)
+    return transcriptHistoryRef.current.slice(0, -1).join(' ');
+  }, []);
+
+  // Helper function to get note context
+  const getNoteContext = useCallback((): string => {
+    return noteContentHistoryRef.current;
+  }, []);
+
+  const processBatch = useCallback(async (transcriptBatch: string) => {
+    if (!note || isProcessing) return;
+
+    setIsProcessing(true);
+    setProcessingStatus('Processing transcript...');
+
+    // Update transcript history and get context
+    updateTranscriptHistory(transcriptBatch);
+    const transcriptContext = getTranscriptContext();
+    const noteContext = getNoteContext();
+
+    try {
+      await processTranscriptBatch(
+        transcriptBatch,
+        (blocks: ContentBlock[]) => {
+          // Success callback
+          setNote(prevNote => {
+            if (!prevNote) return null;
+            
+            const updatedNote = {
+              ...prevNote,
+              content: [...prevNote.content, ...blocks],
+              updatedAt: new Date(),
+            };
+            
+            // Save to database
+            saveNote(updatedNote);
+            return updatedNote;
+          });
+          
+          // Update note content history with new blocks
+          updateNoteContentHistory(blocks);
+          
+          setProcessedWords(prev => prev + transcriptBatch.split(/\s+/).length);
+          setIsProcessing(false);
+          setProcessingStatus('');
+          
+          toast.success('Transcript processed', {
+            description: `${blocks.length} content block${blocks.length === 1 ? '' : 's'} added`
+          });
+        },
+        (error: string) => {
+          // Error callback
+          console.error('LLM processing error:', error);
+          setProcessingStatus(`Error: ${error}`);
+          setIsProcessing(false);
+          
+          toast.error('Processing failed', {
+            description: error,
+            action: {
+              label: 'Retry',
+              onClick: () => processBatch(transcriptBatch)
+            }
+          });
+          
+          // Retry after a delay
+          setTimeout(() => {
+            setProcessingStatus('');
+          }, 3000);
+        },
+        transcriptContext,
+        noteContext
+      );
+    } catch (error) {
+      console.error('Failed to process batch:', error);
+      setIsProcessing(false);
+      setProcessingStatus('');
+    }
+  }, [note, isProcessing, updateTranscriptHistory, getTranscriptContext, getNoteContext, updateNoteContentHistory]);
+
   // Initialize database and load/create note
   useEffect(() => {
     const initializeApp = async () => {
@@ -43,12 +168,15 @@ export default function NotePage() {
         await initializeDatabase();
         const config = await getConfig();
         setBatchSize(config.batchSize);
+        setSlidingWindowSize(config.slidingWindowSize);
         
         // Try to load existing note
         const existingNote = await getNote(noteId);
         
         if (existingNote) {
           setNote(existingNote);
+          // Initialize note content history with existing content
+          updateNoteContentHistory(existingNote.content);
         } else {
           // Create new note
           const newNote: Note = {
@@ -71,7 +199,7 @@ export default function NotePage() {
     };
 
     initializeApp();
-  }, [noteId]);
+  }, [noteId, updateNoteContentHistory]);
 
   // Process transcript in batches
   useEffect(() => {
@@ -92,70 +220,30 @@ export default function NotePage() {
         processBatch(newTranscript.trim());
       }
     }
-  }, [transcript, batchSize, isInitialized]);
-
-  const processBatch = async (transcriptBatch: string) => {
-    if (!note || isProcessing) return;
-
-    setIsProcessing(true);
-    setProcessingStatus('Processing transcript...');
-
-    try {
-      await processTranscriptBatch(
-        transcriptBatch,
-        (blocks: ContentBlock[]) => {
-          // Success callback
-          setNote(prevNote => {
-            if (!prevNote) return null;
-            
-            const updatedNote = {
-              ...prevNote,
-              content: [...prevNote.content, ...blocks],
-              updatedAt: new Date(),
-            };
-            
-            // Save to database
-            saveNote(updatedNote);
-            return updatedNote;
-          });
-          
-          setProcessedWords(prev => prev + transcriptBatch.split(/\s+/).length);
-          setIsProcessing(false);
-          setProcessingStatus('');
-        },
-        (error: string) => {
-          // Error callback
-          console.error('LLM processing error:', error);
-          setProcessingStatus(`Error: ${error}`);
-          setIsProcessing(false);
-          
-          // Retry after a delay
-          setTimeout(() => {
-            setProcessingStatus('');
-          }, 3000);
-        }
-      );
-    } catch (error) {
-      console.error('Failed to process batch:', error);
-      setIsProcessing(false);
-      setProcessingStatus('');
-    }
-  };
+  }, [transcript, batchSize, isInitialized, processBatch]);
 
   const handleStartListening = () => {
     if (!browserSupportsSpeechRecognition) {
-      alert('Your browser does not support speech recognition.');
+      toast.error('Browser not supported', {
+        description: 'Your browser does not support speech recognition'
+      });
       return;
     }
 
     if (!isMicrophoneAvailable) {
-      alert('Microphone access is required for speech recognition.');
+      toast.error('Microphone access required', {
+        description: 'Please allow microphone access to start recording'
+      });
       return;
     }
 
     SpeechRecognition.startListening({
       continuous: true,
       language: 'en-US',
+    });
+    
+    toast.success('Recording started', {
+      description: 'Listening for speech...'
     });
   };
 
@@ -167,8 +255,15 @@ export default function NotePage() {
       const remainingTranscript = transcript.slice(lastProcessedTranscriptRef.current.length);
       if (remainingTranscript.trim()) {
         processBatch(remainingTranscript.trim());
+        toast.info('Processing final transcript', {
+          description: 'Processing remaining speech...'
+        });
       }
     }
+    
+    toast.success('Recording stopped', {
+      description: 'Speech recognition has been stopped'
+    });
   };
 
   const handleReset = () => {
@@ -176,6 +271,10 @@ export default function NotePage() {
     setProcessedWords(0);
     wordCountRef.current = 0;
     lastProcessedTranscriptRef.current = '';
+    
+    toast.info('Transcript reset', {
+      description: 'Current transcript cleared'
+    });
   };
 
   if (!browserSupportsSpeechRecognition) {
@@ -275,7 +374,7 @@ export default function NotePage() {
             </div>
             
             <div className="text-sm text-gray-600">
-              Words processed: {processedWords} | Batch size: {batchSize}
+              Words processed: {processedWords} | Batch size: {batchSize} | Context window: {slidingWindowSize}
             </div>
           </div>
           

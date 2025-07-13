@@ -4,6 +4,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer } from 'rech
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { GraphBlock as GraphBlockType } from '@/lib/interfaces';
+import { getBackgroundColorClass } from '@/lib/utils';
 
 interface GraphBlockProps {
   block: GraphBlockType;
@@ -17,7 +18,7 @@ export default function GraphBlock({ block, noteColor }: GraphBlockProps) {
     
     // Map background value to Tailwind color weight
     const weight = Math.round(block.background * 100);
-    return `bg-${noteColor}-${weight}`;
+    return getBackgroundColorClass(noteColor, weight);
   };
 
   // Calculate width classes
@@ -38,20 +39,21 @@ export default function GraphBlock({ block, noteColor }: GraphBlockProps) {
     }
   };
 
-  // Generate sample data for the chart
-  // In a real implementation, this would come from the block data
-  const generateSampleData = () => {
-    return [
-      { name: 'Jan', value: 400 },
-      { name: 'Feb', value: 300 },
-      { name: 'Mar', value: 500 },
-      { name: 'Apr', value: 280 },
-      { name: 'May', value: 590 },
-      { name: 'Jun', value: 320 },
-    ];
-  };
+  // Use chart data from the block - should always be provided by LLM
+  const chartData = (block as GraphBlockType & { chartData?: Array<Record<string, string | number>> }).chartData;
 
-  const chartData = generateSampleData();
+  // If no chart data provided, this is an error - don't render
+  if (!chartData || chartData.length === 0) {
+    return (
+      <div className={`${getWidthClass()} p-2`}>
+        <Card className={`${getBackgroundColor()} border-2 border-black`}>
+          <CardContent className="p-4">
+            <p className="text-red-600 text-center">Error: No chart data provided</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className={`${getWidthClass()} p-2`}>

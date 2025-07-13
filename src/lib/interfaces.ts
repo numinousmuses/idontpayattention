@@ -13,6 +13,7 @@ export interface Config {
     id: string;
     models: Model[];
     batchSize: number;
+    slidingWindowSize: number;
 }
 
 export interface GraphBlock {

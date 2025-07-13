@@ -10,7 +10,7 @@ export default function FeaturesSection() {
     {
       icon: Gift,
       title: "Forever free*",
-      description: "Core features stay free forever. Bring your own API key and transcribe, unlimited notes without paying a dime."
+      description: "Core features stay free forever. Bring your own API key and take unlimited notes without paying a dime."
     },
     {
       icon: Shield,
