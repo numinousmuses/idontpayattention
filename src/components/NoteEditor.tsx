@@ -54,7 +54,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
       setEditingNote({ ...editingNote, content: parsedContent });
       setShowJsonEditor(false);
       toast.success('JSON updated successfully');
-    } catch (error) {
+    } catch {
       toast.error('Invalid JSON format');
     }
   };
@@ -122,7 +122,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
     const block = newContent[blockIndex];
     
     if (block.content[itemIndex]) {
-      block.content[itemIndex] = { ...block.content[itemIndex], ...updates };
+      block.content[itemIndex] = { ...block.content[itemIndex], ...updates } as TextBlock | GraphBlock | MarqueeBlock;
       setEditingNote({ ...editingNote, content: newContent });
     }
   };
@@ -140,7 +140,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
                 <div className="flex items-center gap-1">
                   <Button
                     size="sm"
-                    variant="ghost"
+                    variant="neutral"
                     onClick={() => moveBlock(blockIndex, 'up')}
                     disabled={blockIndex === 0}
                   >
@@ -148,7 +148,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
                   </Button>
                   <Button
                     size="sm"
-                    variant="ghost"
+                    variant="neutral"
                     onClick={() => moveBlock(blockIndex, 'down')}
                     disabled={blockIndex === editingNote.content.length - 1}
                   >
@@ -156,7 +156,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
                   </Button>
                   <Button
                     size="sm"
-                    variant="ghost"
+                    variant="neutral"
                     onClick={() => deleteBlock(blockIndex)}
                     className="text-red-600 hover:text-red-800"
                   >
@@ -181,8 +181,8 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
                         <div className="flex-1">
                           <Label>Width</Label>
                           <Select
-                            value={item.width || '1/1'}
-                            onValueChange={(value) => updateBlockContent(blockIndex, itemIndex, { width: value as any })}
+                            value={(item as TextBlock).width || '1/1'}
+                            onValueChange={(value) => updateBlockContent(blockIndex, itemIndex, { width: value as "1/1" | "1/2" | "1/3" | "1/4" | "2/3" | "3/4" })}
                           >
                             <SelectTrigger>
                               <SelectValue />
@@ -201,7 +201,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
                           <Label>Background</Label>
                           <Select
                             value={String(item.background || 0)}
-                            onValueChange={(value) => updateBlockContent(blockIndex, itemIndex, { background: Number(value) as any })}
+                            onValueChange={(value) => updateBlockContent(blockIndex, itemIndex, { background: Number(value) as 0 | 1 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 9.5 })}
                           >
                             <SelectTrigger>
                               <SelectValue />
@@ -231,7 +231,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
                           <Label>Chart Type</Label>
                           <Select
                             value={item.chartType}
-                            onValueChange={(value) => updateBlockContent(blockIndex, itemIndex, { chartType: value as any })}
+                            onValueChange={(value) => updateBlockContent(blockIndex, itemIndex, { chartType: value as "area" | "bar" | "line" | "pie" | "scatter" | "composed" })}
                           >
                             <SelectTrigger>
                               <SelectValue />
@@ -248,7 +248,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
                           <Label>Width</Label>
                           <Select
                             value={item.width || '1/1'}
-                            onValueChange={(value) => updateBlockContent(blockIndex, itemIndex, { width: value as any })}
+                            onValueChange={(value) => updateBlockContent(blockIndex, itemIndex, { width: value as "1/1" | "1/2" | "1/3" | "1/4" | "2/3" | "3/4" })}
                           >
                             <SelectTrigger>
                               <SelectValue />
@@ -289,7 +289,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
                             try {
                               const data = JSON.parse(e.target.value);
                               updateBlockContent(blockIndex, itemIndex, { chartData: data });
-                            } catch (error) {
+                            } catch {
                               // Invalid JSON, don't update
                             }
                           }}
@@ -317,15 +317,15 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
         ))}
         
         <div className="flex gap-2">
-          <Button onClick={() => addBlock('text')} variant="outline">
+          <Button onClick={() => addBlock('text')} variant="neutral">
             <Plus className="h-4 w-4 mr-2" />
             Add Text Block
           </Button>
-          <Button onClick={() => addBlock('graph')} variant="outline">
+          <Button onClick={() => addBlock('graph')} variant="neutral">
             <Plus className="h-4 w-4 mr-2" />
             Add Graph Block
           </Button>
-          <Button onClick={() => addBlock('marquee')} variant="outline">
+          <Button onClick={() => addBlock('marquee')} variant="neutral">
             <Plus className="h-4 w-4 mr-2" />
             Add Marquee Block
           </Button>
@@ -345,7 +345,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant={showJsonEditor ? "default" : "outline"}
+                    variant={showJsonEditor ? "default" : "neutral"}
                     size="sm"
                     onClick={() => setShowJsonEditor(!showJsonEditor)}
                   >
@@ -362,7 +362,7 @@ export default function NoteEditor({ note, onNoteUpdate, onClose }: NoteEditorPr
                 Save
               </Button>
               
-              <Button onClick={onClose} variant="ghost" size="sm">
+              <Button onClick={onClose} variant="neutral" size="sm">
                 <X className="h-4 w-4" />
               </Button>
             </div>
