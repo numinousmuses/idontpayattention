@@ -452,8 +452,8 @@ Guidelines:
     <div className="min-h-screen bg-gray-50">
         {/* Consolidated Header */}
         {!isHeaderCollapsed && (
-          <div className="bg-white border-b-2 border-black p-4 transition-all duration-300">
-            <div className="max-w-6xl mx-auto">
+          <div className="bg-white border-b-2 border-black p-4 md:p-6 transition-all duration-300">
+            <div className="max-w-sm mx-auto sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
               {/* Mobile Header */}
               <div className="md:hidden">
                 <div className="flex items-center justify-between">
@@ -479,7 +479,7 @@ Guidelines:
                                                   <Input
                           value={tempTitle ?? ''}
                           onChange={(e) => setTempTitle(e.target.value ?? '')}
-                          className="text-lg font-bold"
+                          className="text-sm font-bold"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSaveTitle();
                             if (e.key === 'Escape') handleCancelTitleEdit();
@@ -505,7 +505,7 @@ Guidelines:
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <h1 className="text-lg font-bold truncate max-w-[200px]">{note.title}</h1>
+                          <h1 className="text-sm font-bold truncate max-w-[150px]">{note.title}</h1>
                           <Button
                             size="icon"
                             variant="neutral"
@@ -681,7 +681,7 @@ Guidelines:
                   </Tooltip>
                     </div>
                     
-                    <div className="mt-3 text-sm text-gray-600">
+                    <div className="mt-3 text-xs text-gray-600">
                       <div className="flex items-center gap-4">
                         <span>Mic: {listening ? 'On' : 'Off'}</span>
                         {isProcessing && <span>Processing...</span>}
@@ -716,7 +716,7 @@ Guidelines:
                         <Input
                           value={tempTitle ?? ''}
                           onChange={(e) => setTempTitle(e.target.value ?? '')}
-                          className="text-xl font-bold"
+                          className="text-lg md:text-xl font-bold"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSaveTitle();
                             if (e.key === 'Escape') handleCancelTitleEdit();
@@ -754,7 +754,7 @@ Guidelines:
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-bold">{note.title}</h1>
+                        <h1 className="text-lg md:text-2xl font-bold">{note.title}</h1>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -952,21 +952,21 @@ Guidelines:
 
         {/* Current transcript and processing status */}
         {(transcript || processingStatus) && (
-          <div className="bg-white border-b-2 border-black p-4">
-            <div className="max-w-6xl mx-auto">
+          <div className="bg-white border-b-2 border-black p-4 md:p-6">
+            <div className="max-w-sm mx-auto sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
           {transcript && (
             <Card className="mb-4">
-              <CardContent className="p-4">
-                <h3 className="font-semibold mb-2">Current Transcript:</h3>
-                <p className="text-sm text-gray-700">{transcript}</p>
+              <CardContent className="p-3 md:p-4">
+                <h3 className="text-sm md:text-base font-semibold mb-2">Current Transcript:</h3>
+                <p className="text-xs md:text-sm text-gray-700">{transcript}</p>
               </CardContent>
             </Card>
           )}
           
           {processingStatus && (
                 <Card>
-              <CardContent className="p-4">
-                <p className="text-sm font-medium text-blue-600">{processingStatus}</p>
+              <CardContent className="p-3 md:p-4">
+                <p className="text-xs md:text-sm font-medium text-blue-600">{processingStatus}</p>
               </CardContent>
             </Card>
           )}

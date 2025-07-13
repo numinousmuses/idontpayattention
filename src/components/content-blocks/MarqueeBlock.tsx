@@ -20,7 +20,7 @@ export default function MarqueeBlock({ block, noteColor }: MarqueeBlockProps) {
   };
 
   return (
-    <div className="w-full p-2 flex">
+    <div className="w-full p-1 md:p-2 flex">
       <div className={`${getBackgroundColor()} border-2 border-black overflow-hidden flex-1`}>
         <Marquee items={block.content} />
       </div>

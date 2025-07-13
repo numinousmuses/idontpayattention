@@ -24,24 +24,24 @@ export default function TextBlock({ block, noteColor }: TextBlockProps) {
   const getWidthClass = () => {
     switch (block.width) {
       case '1/2':
-        return 'w-1/2';
+        return 'w-full md:w-1/2';
       case '1/3':
-        return 'w-1/3';
+        return 'w-full md:w-1/2 lg:w-1/3';
       case '1/4':
-        return 'w-1/4';
+        return 'w-full md:w-1/2 lg:w-1/4';
       case '2/3':
-        return 'w-2/3';
+        return 'w-full md:w-full lg:w-2/3';
       case '3/4':
-        return 'w-3/4';
+        return 'w-full md:w-full lg:w-3/4';
       default:
         return 'w-full';
     }
   };
 
   return (
-    <div className={`${getWidthClass()} p-2 flex`}>
+    <div className={`${getWidthClass()} p-1 md:p-2 flex`}>
       <Card className={`${getBackgroundColor()} border-2 border-black flex-1`}>
-        <CardContent className="p-4">
+        <CardContent className="p-3 md:p-4">
           <div className="prose prose-sm max-w-none text-black">
             <ReactMarkdown
               components={{

@@ -35,15 +35,15 @@ export default function GraphBlock({ block, noteColor }: GraphBlockProps) {
   const getWidthClass = () => {
     switch (block.width) {
       case '1/2':
-        return 'w-1/2';
+        return 'w-full md:w-1/2';
       case '1/3':
-        return 'w-1/3';
+        return 'w-full md:w-1/2 lg:w-1/3';
       case '1/4':
-        return 'w-1/4';
+        return 'w-full md:w-1/2 lg:w-1/4';
       case '2/3':
-        return 'w-2/3';
+        return 'w-full md:w-full lg:w-2/3';
       case '3/4':
-        return 'w-3/4';
+        return 'w-full md:w-full lg:w-3/4';
       default:
         return 'w-full';
     }
@@ -52,9 +52,9 @@ export default function GraphBlock({ block, noteColor }: GraphBlockProps) {
   // If no chart data provided, this is an error - don't render
   if (!block.chartData || block.chartData.length === 0) {
     return (
-      <div className={`${getWidthClass()} p-2 flex`}>
+      <div className={`${getWidthClass()} p-1 md:p-2 flex`}>
         <Card className={`${getBackgroundColor()} border-2 border-black flex-1`}>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <p className="text-red-600 text-center">Error: No chart data provided</p>
           </CardContent>
         </Card>
@@ -175,24 +175,24 @@ export default function GraphBlock({ block, noteColor }: GraphBlockProps) {
   };
 
   return (
-    <div className={`${getWidthClass()} p-2 flex`}>
+    <div className={`${getWidthClass()} p-1 md:p-2 flex`}>
       <Card className={`${getBackgroundColor()} border-2 border-black flex-1`}>
-        <CardHeader>
-          <CardTitle className="text-black">{block.heading}</CardTitle>
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="text-black text-base md:text-lg">{block.heading}</CardTitle>
           {block.subheading && (
-            <CardDescription className="text-black">
+            <CardDescription className="text-black text-sm">
               {block.subheading}
             </CardDescription>
           )}
         </CardHeader>
-        <CardContent>
-          <div className="w-full h-80">
+        <CardContent className="p-3 md:p-6">
+          <div className="w-full h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               {renderChart()}
             </ResponsiveContainer>
           </div>
           {block.description && (
-            <p className="text-sm text-black mt-2">{block.description}</p>
+            <p className="text-xs md:text-sm text-black mt-2">{block.description}</p>
           )}
         </CardContent>
       </Card>

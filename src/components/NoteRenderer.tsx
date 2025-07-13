@@ -26,7 +26,7 @@ export default function NoteRenderer({ note }: NoteRendererProps) {
 
   return (
     <div 
-      className={`min-h-screen ${getBackgroundColor()} p-4`}
+      className={`min-h-screen ${getBackgroundColor()} p-4 md:p-6 lg:p-8`}
       style={{
         backgroundImage: `
           linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
@@ -35,18 +35,18 @@ export default function NoteRenderer({ note }: NoteRendererProps) {
         backgroundSize: '40px 40px'
       }}
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-sm mx-auto sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
         {/* Note Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-black mb-2">{note.title}</h1>
-          <div className="text-sm text-gray-600 space-x-4">
+        <div className="mb-6 md:mb-8 text-center">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-2">{note.title}</h1>
+          <div className="text-xs md:text-sm text-gray-600 space-x-2 md:space-x-4">
             <span>Created: {formatDate(note.createdAt)}</span>
             <span>Updated: {formatDate(note.updatedAt)}</span>
           </div>
         </div>
 
         {/* Content Blocks */}
-        <div className="space-y-4">
+        <div className="space-y-2 md:space-y-4">
           {note.content.map((block, index) => (
             <ContentBlockRenderer
               key={index}
@@ -58,8 +58,8 @@ export default function NoteRenderer({ note }: NoteRendererProps) {
 
         {/* Empty state */}
         {note.content.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">No content blocks yet...</p>
+          <div className="text-center py-12 md:py-16">
+            <p className="text-gray-500 text-base md:text-lg">No content blocks yet...</p>
             <p className="text-gray-400 text-sm mt-2">
               Content will appear here as your transcription is processed.
             </p>

@@ -14,7 +14,7 @@ export default function ContentBlockRenderer({ block, noteColor }: ContentBlockR
   // Render a single row of content blocks
   const renderRow = () => {
     return (
-      <div className="flex flex-wrap w-full items-stretch">
+      <div className="flex flex-wrap w-full items-stretch gap-y-2 md:gap-y-0">
         {block.content.map((item, index) => {
           // Determine block type and render accordingly
           if ('content' in item && typeof item.content === 'string' && 'width' in item) {
@@ -53,7 +53,7 @@ export default function ContentBlockRenderer({ block, noteColor }: ContentBlockR
   };
 
   return (
-    <div className="mb-4">
+    <div className="mb-2 md:mb-4">
       {renderRow()}
     </div>
   );

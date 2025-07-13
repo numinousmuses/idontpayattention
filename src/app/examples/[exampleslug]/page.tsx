@@ -65,8 +65,8 @@ export default function ExampleNotePage() {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         {!isHeaderCollapsed && (
-          <div className="bg-white border-b-2 border-black p-4 transition-all duration-300">
-            <div className="max-w-6xl mx-auto">
+          <div className="bg-white border-b-2 border-black p-4 md:p-6 transition-all duration-300">
+            <div className="max-w-sm mx-auto sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
               {/* Mobile Header */}
               <div className="md:hidden">
                 <div className="flex items-center justify-between">
@@ -86,7 +86,7 @@ export default function ExampleNotePage() {
                       </TooltipContent>
                     </Tooltip>
                     <div>
-                      <h1 className="text-lg font-bold truncate max-w-[200px]">{note.title}</h1>
+                      <h1 className="text-base font-bold truncate max-w-[180px]">{note.title}</h1>
                       <p className="text-xs text-gray-600">Example Note</p>
                     </div>
                   </div>
@@ -152,7 +152,7 @@ export default function ExampleNotePage() {
                     </TooltipContent>
                   </Tooltip>
                   <div>
-                    <h1 className="text-2xl font-bold">{note.title}</h1>
+                    <h1 className="text-xl md:text-2xl font-bold">{note.title}</h1>
                     <p className="text-sm text-gray-600">Example Note</p>
                   </div>
                 </div>
