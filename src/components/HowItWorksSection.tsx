@@ -3,16 +3,16 @@ import ImageCard from "@/components/ui/image-card";
 export default function HowItWorksSection() {
   const steps = [
     {
-      caption: "Drop a link / file / text",
-      imageUrl: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop"
+      caption: "Start the listener",
+      imageUrl: "/notesclip1.gif"
     },
     {
       caption: "Generates smart notes and a TL:DR",
-      imageUrl: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop"
+      imageUrl: "/notesclip2.gif"
     },
     {
       caption: "Copy, download or share",
-      imageUrl: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop"
+      imageUrl: "/notesclip3.gif"
     }
   ];
 
