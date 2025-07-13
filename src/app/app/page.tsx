@@ -46,6 +46,7 @@ export default function AppPage() {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [isMounted, setIsMounted] = useState(false);
+  const [isAlias, setIsAlias] = useState(false);
 
   // Load notes on component mount
   useEffect(() => {
@@ -63,6 +64,13 @@ export default function AppPage() {
     };
 
     loadNotes();
+  }, []);
+
+  // Check if we're on the alias domain
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsAlias(window.location.hostname.includes("idontpayattention"));
+    }
   }, []);
 
   const handleStartListener = () => {
@@ -172,7 +180,7 @@ export default function AppPage() {
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center gap-8">
         <div className="flex flex-col items-center gap-4">
             <h1 className="text-4xl md:text-6xl xl:text-8xl font-bold text-black tracking-tight">
-                i&apos;m not f!cking paying attention
+                {isAlias ? "i'm not paying attention" : "i'm not f!cking paying attention"}
             </h1>
         </div>
 
